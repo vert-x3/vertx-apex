@@ -29,7 +29,7 @@ import io.vertx.core.http.HttpServerOptions;
 import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.UserContext;
+import io.vertx.ext.auth.common.UserContext;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.graphql.*;
 import io.vertx.ext.web.handler.graphql.instrumentation.JsonObjectAdapter;

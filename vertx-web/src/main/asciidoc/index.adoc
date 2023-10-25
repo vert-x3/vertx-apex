@@ -1199,7 +1199,7 @@ make sure your authentication handler is before your application handlers on tho
 ----
 
 If the authentication handler has successfully authenticated the user it will inject a {@link io.vertx.ext.auth.User}
-object into the {@link io.vertx.ext.web.UserContext} so it's available in your handlers from the routing context:
+object into the {@link io.vertx.ext.auth.common.UserContext} so it's available in your handlers from the routing context:
 {@link io.vertx.ext.web.RoutingContext#user()}.
 
 If you want your User object to be stored in the session so it's available between requests so you don't have to
@@ -1207,7 +1207,7 @@ authenticate on each request, then you should make sure you have a session handl
 
 Once you have your user object you can also programmatically use the methods on it to authorize the user.
 
-If you want to cause the user to be logged out you can call {@link io.vertx.ext.web.UserContext#logout()}
+If you want to cause the user to be logged out you can call {@link io.vertx.ext.auth.common.UserContext#logout()}
 on the routing context `user` getter. The logout will remove the user from the session if there is one and perform a redirect to an optional uri or `/` by default.
 
 === HTTP Basic Authentication

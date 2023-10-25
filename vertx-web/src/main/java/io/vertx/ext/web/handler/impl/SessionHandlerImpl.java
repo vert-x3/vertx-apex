@@ -29,7 +29,7 @@ import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.SessionHandler;
 import io.vertx.ext.web.impl.RoutingContextInternal;
 import io.vertx.ext.web.impl.Signature;
-import io.vertx.ext.web.impl.UserContextInternal;
+import io.vertx.ext.auth.common.UserContextInternal;
 import io.vertx.ext.web.sstore.SessionStore;
 import io.vertx.ext.web.sstore.impl.SessionInternal;
 

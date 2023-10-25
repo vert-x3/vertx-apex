@@ -21,6 +21,7 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpClientRequest;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
+import io.vertx.ext.auth.common.AuthenticationHandler;
 import io.vertx.ext.auth.properties.PropertyFileAuthentication;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
@@ -229,7 +230,7 @@ public class RedirectAuthHandlerTest extends AuthHandlerTestBase {
   }
 
   @Override
-  protected AuthenticationHandler createAuthHandler(AuthenticationProvider authProvider) {
+  protected WebAuthenticationHandler createAuthHandler(AuthenticationProvider authProvider) {
     return RedirectAuthHandler.create(authProvider);
   }
 

@@ -82,6 +82,8 @@
     <module>vertx-web-validation</module>
     <module>vertx-web-openapi-router</module>
     <module>vertx-web-proxy</module>
+    <module>vertx-web-auth-common</module>
+    <module>vertx-web-auth-jwt</module>
   </modules>
 
   <profiles>

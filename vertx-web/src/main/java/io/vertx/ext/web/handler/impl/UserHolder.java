@@ -21,7 +21,7 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.shareddata.ClusterSerializable;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.impl.UserContextInternal;
+import io.vertx.ext.auth.common.UserContextInternal;
 import io.vertx.ext.web.impl.Utils;
 
 import java.nio.charset.StandardCharsets;

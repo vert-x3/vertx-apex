@@ -39,6 +39,17 @@
       <groupId>io.vertx</groupId>
       <artifactId>vertx-auth-common</artifactId>
     </dependency>
+    <!-- Remove this dependency once code got moved to vertx-auth-common -->
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-web-auth-common</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-web-auth-common</artifactId>
+      <version>${project.version}</version>
+    </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-bridge-common</artifactId>
@@ -51,6 +62,13 @@
       <artifactId>vertx-auth-jwt</artifactId>
       <optional>true</optional>
     </dependency>
+    <!-- This dep is not needed once the code got moved to vertx-auth-jwt -->
+    <dependency>
+        <groupId>io.vertx</groupId>
+        <artifactId>vertx-web-auth-jwt</artifactId>
+        <version>${project.version}</version>
+        <optional>true</optional>
+     </dependency>
     <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-auth-oauth2</artifactId>

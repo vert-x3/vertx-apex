@@ -13,7 +13,7 @@
  *
  *  You may elect to redistribute this code under either of these licenses.
  */
-package io.vertx.ext.web.handler;
+package io.vertx.ext.web.common;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
 
@@ -28,7 +28,7 @@ import io.netty.handler.codec.http.HttpResponseStatus;
  *
  * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
-public final class HttpException extends RuntimeException {
+public abstract class HttpException extends RuntimeException {
 
   private final int statusCode;
   private final String payload;

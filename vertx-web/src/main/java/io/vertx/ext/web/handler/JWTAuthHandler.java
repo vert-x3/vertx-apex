@@ -16,12 +16,10 @@
 
 package io.vertx.ext.web.handler;
 
-import io.vertx.codegen.annotations.Fluent;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.ext.auth.jwt.JWTAuth;
+import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.impl.JWTAuthHandlerImpl;
-
-import java.util.List;
 
 /**
  * An auth handler that provides JWT Authentication support.
@@ -29,13 +27,14 @@ import java.util.List;
  * @author Paulo Lopes
  */
 @VertxGen
-public interface JWTAuthHandler extends AuthenticationHandler {
+// TODO this will alter the signature of the interface. Originally only the impl did implement ScopedAuthentication - now we also expose it via the interface.
+public interface JWTAuthHandler extends WebAuthenticationHandler, io.vertx.ext.auth.jwt.JWTAuthHandler<RoutingContext>, io.vertx.ext.web.handler.impl.ScopedAuthentication<JWTAuthHandler> {
 
   /**
-   * Create a JWT auth handler. When no scopes are explicit declared, the default scopes will be looked up from the
-   * route metadata.
+   * Create a JWT auth handler. When no scopes are explicit declared, the default scopes will be looked up from the route metadata.
    *
-   * @param authProvider  the auth provider to use
+   * @param authProvider
+   *          the auth provider to use
    * @return the auth handler
    */
   static JWTAuthHandler create(JWTAuth authProvider) {
@@ -43,42 +42,14 @@ public interface JWTAuthHandler extends AuthenticationHandler {
   }
 
   /**
-   * Create a JWT auth handler. When no scopes are explicit declared, the default scopes will be looked up from the
-   * route metadata.
+   * Create a JWT auth handler. When no scopes are explicit declared, the default scopes will be looked up from the route metadata.
    *
-   * @param authProvider  the auth provider to use
+   * @param authProvider
+   *          the auth provider to use
    * @return the auth handler
    */
   static JWTAuthHandler create(JWTAuth authProvider, String realm) {
     return new JWTAuthHandlerImpl(authProvider, realm);
   }
 
-  /**
-   * Set the scope delimiter. By default this is a space character.
-   *
-   * @param delimiter scope delimiter.
-   * @return fluent self.
-   */
-  @Fluent
-  JWTAuthHandler scopeDelimiter(String delimiter);
-
-  /**
-   * Return a new instance with the internal state copied from the caller but the scopes to be requested during a token
-   * request are unique to the instance. When scopes are applied to the handler, the default scopes from the route
-   * metadata will be ignored.
-   *
-   * @param scope scope.
-   * @return new instance of this interface.
-   */
-  JWTAuthHandler withScope(String scope);
-
-  /**
-   * Return a new instance with the internal state copied from the caller but the scopes to be requested during a token
-   * request are unique to the instance. When scopes are applied to the handler, the default scopes from the route
-   * metadata will be ignored.
-   *
-   * @param scopes scopes.
-   * @return new instance of this interface.
-   */
-  JWTAuthHandler withScopes(List<String> scopes);
 }

@@ -20,7 +20,7 @@ import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.handler.AuthenticationHandler;
+import io.vertx.ext.web.handler.WebAuthenticationHandler;
 import io.vertx.ext.web.handler.InputTrustHandler;
 import io.vertx.ext.web.openapi.router.OpenAPIRoute;
 import io.vertx.ext.web.openapi.router.RequestExtractor;
@@ -88,7 +88,7 @@ public class RouterBuilderImpl implements RouterBuilderInternal {
   }
 
   @Override
-  public RouterBuilder security(String securitySchemeName, AuthenticationHandler authenticationHandler,
+  public RouterBuilder security(String securitySchemeName, WebAuthenticationHandler authenticationHandler,
                                 String callback) {
     securityHandlers.addRequirement(securitySchemeName, authenticationHandler, callback);
     return this;

@@ -14,26 +14,22 @@
  *  You may elect to redistribute this code under either of these licenses.
  */
 
-package io.vertx.ext.web.handler.impl;
+package io.vertx.ext.auth.common.handler.impl;
 
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
-import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.Session;
-import io.vertx.ext.web.handler.HttpException;
-import io.vertx.ext.web.impl.UserContextInternal;
+import io.vertx.ext.auth.common.AuthenticationContext;
+import io.vertx.ext.auth.common.Session;
+import io.vertx.ext.auth.common.UserContextInternal;
+import io.vertx.ext.auth.common.handler.AuthenticationHandlerInternal;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public abstract class AuthenticationHandlerImpl<T extends AuthenticationProvider> implements AuthenticationHandlerInternal {
-
-  static final HttpException UNAUTHORIZED = new HttpException(401);
-  static final HttpException BAD_REQUEST = new HttpException(400);
-  static final HttpException BAD_METHOD = new HttpException(405);
+public abstract class AuthenticationHandlerImpl<C extends AuthenticationContext, T extends AuthenticationProvider> implements AuthenticationHandlerInternal<C> {
 
   protected final T authProvider;
   // signal the kind of Multi-Factor Authentication used by the handler
@@ -48,8 +44,7 @@ public abstract class AuthenticationHandlerImpl<T extends AuthenticationProvider
     this.mfa = mfa;
   }
 
-  @Override
-  public void handle(RoutingContext ctx) {
+  public void handle(C ctx) {
 
     if (handlePreflight(ctx)) {
       return;
@@ -70,7 +65,7 @@ public abstract class AuthenticationHandlerImpl<T extends AuthenticationProvider
           if (!ctx.request().isEnded()) {
             ctx.request().resume();
           }
-          postAuthentication(ctx);
+          postAuthentication(ctx, user);
           return;
         }
       } else {
@@ -78,7 +73,7 @@ public abstract class AuthenticationHandlerImpl<T extends AuthenticationProvider
         if (!ctx.request().isEnded()) {
           ctx.request().resume();
         }
-        postAuthentication(ctx);
+        postAuthentication(ctx, user);
         return;
       }
     }
@@ -97,7 +92,7 @@ public abstract class AuthenticationHandlerImpl<T extends AuthenticationProvider
         if (!ctx.request().isEnded()) {
           ctx.request().resume();
         }
-        postAuthentication(ctx);
+        postAuthentication(ctx, authenticated);
       })
       .onFailure(cause -> {
         // to allow further processing if needed
@@ -108,41 +103,9 @@ public abstract class AuthenticationHandlerImpl<T extends AuthenticationProvider
     });
   }
 
-  /**
-   * This method is protected so custom auth handlers can override the default
-   * error handling
-   */
-  protected void processException(RoutingContext ctx, Throwable exception) {
-    if (exception != null) {
-      if (exception instanceof HttpException) {
-        final int statusCode = ((HttpException) exception).getStatusCode();
-        final String payload = ((HttpException) exception).getPayload();
+  protected abstract void processException(C ctx, Throwable cause);
 
-        switch (statusCode) {
-          case 302:
-            ctx.response()
-              .putHeader(HttpHeaders.LOCATION, payload)
-              .setStatusCode(302)
-              .end("Redirecting to " + payload + ".");
-            return;
-          case 401:
-            if (!"XMLHttpRequest".equals(ctx.request().getHeader("X-Requested-With"))) {
-              setAuthenticateHeader(ctx);
-            }
-            ctx.fail(401, exception);
-            return;
-          default:
-            ctx.fail(statusCode, exception);
-            return;
-        }
-      }
-    }
-
-    // fallback 500
-    ctx.fail(exception);
-  }
-
-  private boolean handlePreflight(RoutingContext ctx) {
+  private boolean handlePreflight(C ctx) {
     final HttpServerRequest request = ctx.request();
     // See: https://www.w3.org/TR/cors/#cross-origin-request-with-preflight-0
     // Preflight requests should not be subject to security due to the reason UAs will remove the Authorization header
@@ -154,7 +117,7 @@ public abstract class AuthenticationHandlerImpl<T extends AuthenticationProvider
         for (String ctrlReq : accessControlRequestHeader.split(",")) {
           if (ctrlReq.equalsIgnoreCase("Authorization")) {
             // this request has auth in access control, so we can allow preflighs without authentication
-            ctx.next();
+            ctx.onContinue();
             return true;
           }
         }

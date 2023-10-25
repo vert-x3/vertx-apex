@@ -25,7 +25,7 @@ import io.vertx.ext.auth.authorization.PermissionBasedAuthorization;
 import io.vertx.ext.auth.properties.PropertyFileAuthentication;
 import io.vertx.ext.auth.properties.PropertyFileAuthorization;
 import io.vertx.ext.web.WebTestBase;
-import io.vertx.ext.web.impl.UserContextInternal;
+import io.vertx.ext.auth.common.UserContextInternal;
 import io.vertx.ext.web.sstore.LocalSessionStore;
 import io.vertx.ext.web.sstore.SessionStore;
 import org.junit.AfterClass;
@@ -53,7 +53,7 @@ public abstract class AuthHandlerTestBase extends WebTestBase {
     testAuthorization("tim", true, PermissionBasedAuthorization.create("knitter"));
   }
 
-  protected abstract AuthenticationHandler createAuthHandler(AuthenticationProvider authProvider);
+  protected abstract WebAuthenticationHandler createAuthHandler(AuthenticationProvider authProvider);
 
   protected boolean requiresSession() {
     return false;
@@ -72,7 +72,7 @@ public abstract class AuthHandlerTestBase extends WebTestBase {
     AuthenticationProvider authNProvider = PropertyFileAuthentication.create(vertx, "login/loginusers.properties");
     AuthorizationProvider authZProvider = PropertyFileAuthorization.create(vertx, "login/loginusers.properties");
 
-    AuthenticationHandler authNHandler = createAuthHandler(authNProvider);
+    WebAuthenticationHandler authNHandler = createAuthHandler(authNProvider);
     router.route().handler(rc -> {
       // we need to be logged in
       if (!rc.user().authenticated()) {

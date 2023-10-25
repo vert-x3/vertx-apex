@@ -59,7 +59,7 @@ public class AuthXRequestedWithTest extends AuthHandlerTestBase {
   }
 
   @Override
-  protected AuthenticationHandler createAuthHandler(AuthenticationProvider authProvider) {
+  protected WebAuthenticationHandler createAuthHandler(AuthenticationProvider authProvider) {
     return BasicAuthHandler.create(authProvider);
   }
 

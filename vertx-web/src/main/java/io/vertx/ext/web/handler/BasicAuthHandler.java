@@ -26,7 +26,7 @@ import io.vertx.ext.web.handler.impl.BasicAuthHandlerImpl;
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 @VertxGen
-public interface BasicAuthHandler extends AuthenticationHandler {
+public interface BasicAuthHandler extends WebAuthenticationHandler {
 
   /**
    * The default realm to use

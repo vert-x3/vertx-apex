@@ -16,18 +16,6 @@
 
 package io.vertx.ext.web.handler.impl;
 
-import io.vertx.core.Future;
-import io.vertx.core.json.JsonObject;
-import io.vertx.ext.auth.User;
-import io.vertx.ext.auth.audit.Marker;
-import io.vertx.ext.auth.audit.SecurityAudit;
-import io.vertx.ext.auth.authentication.TokenCredentials;
-import io.vertx.ext.auth.jwt.JWTAuth;
-import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.handler.HttpException;
-import io.vertx.ext.web.handler.JWTAuthHandler;
-import io.vertx.ext.web.impl.RoutingContextInternal;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -35,10 +23,25 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import io.vertx.core.Future;
+import io.vertx.core.http.HttpHeaders;
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.auth.User;
+import io.vertx.ext.auth.audit.Marker;
+import io.vertx.ext.auth.audit.SecurityAudit;
+import io.vertx.ext.auth.authentication.TokenCredentials;
+import io.vertx.ext.auth.common.handler.impl.HTTPAuthorizationHandler;
+import io.vertx.ext.auth.jwt.AbstractJWTHandler;
+import io.vertx.ext.auth.jwt.JWTAuth;
+import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.HttpException;
+import io.vertx.ext.web.handler.JWTAuthHandler;
+import io.vertx.ext.web.impl.RoutingContextInternal;
+
 /**
  * @author <a href="mailto:pmlopes@gmail.com">Paulo Lopes</a>
  */
-public class JWTAuthHandlerImpl extends HTTPAuthorizationHandler<JWTAuth> implements JWTAuthHandler, ScopedAuthentication<JWTAuthHandler> {
+public class JWTAuthHandlerImpl extends AbstractJWTHandler<RoutingContext> implements JWTAuthHandler {
 
   private final List<String> scopes;
   private String delimiter;
@@ -115,11 +118,11 @@ public class JWTAuthHandlerImpl extends HTTPAuthorizationHandler<JWTAuth> implem
    * The default behavior for post-authentication
    */
   @Override
-  public void postAuthentication(RoutingContext ctx) {
+  public void postAuthentication(RoutingContext ctx, User authenticated) {
     final User user = ctx.user().get();
     if (user == null) {
       // bad state
-      ctx.fail(403, new IllegalStateException("no user in the context"));
+      fail(ctx, 403, "no user in the context");
       return;
     }
     // the user is authenticated, however the user may not have all the required scopes
@@ -128,12 +131,12 @@ public class JWTAuthHandlerImpl extends HTTPAuthorizationHandler<JWTAuth> implem
     if (scopes.size() > 0) {
       final JsonObject jwt = user.get("accessToken");
       if (jwt == null) {
-        ctx.fail(403, new IllegalStateException("Invalid JWT: null"));
+        fail(ctx, 403, "Invalid JWT: null");
         return;
       }
 
       if (jwt.getValue("scope") == null) {
-        ctx.fail(403, new IllegalStateException("Invalid JWT: scope claim is required"));
+        fail(ctx, 403, "Invalid JWT: scope claim is required");
         return;
       }
 
@@ -150,12 +153,50 @@ public class JWTAuthHandlerImpl extends HTTPAuthorizationHandler<JWTAuth> implem
       if (target != null) {
         for (String scope : scopes) {
           if (!target.contains(scope)) {
-            ctx.fail(403, new IllegalStateException("JWT scopes != handler scopes"));
+            fail(ctx, 403, "JWT scopes != handler scopes");
             return;
           }
         }
       }
     }
     ctx.next();
+  }
+  
+  // TODO remove duplicated code from WebAuthenticationHandlerImpl
+  /**
+   * This method is protected so custom auth handlers can override the default error handling
+   */
+  protected void processException(RoutingContext ctx, Throwable exception) {
+    if (exception != null) {
+      if (exception instanceof HttpException) {
+        final int statusCode = ((HttpException) exception).getStatusCode();
+        final String payload = ((HttpException) exception).getPayload();
+
+        switch (statusCode) {
+        case 302:
+          ctx.response()
+            .putHeader(HttpHeaders.LOCATION, payload)
+            .setStatusCode(302)
+            .end("Redirecting to " + payload + ".");
+          return;
+        case 401:
+          if (!"XMLHttpRequest".equals(ctx.request().getHeader("X-Requested-With"))) {
+            setAuthenticateHeader(ctx);
+          }
+          ctx.fail(401, exception);
+          return;
+        default:
+          ctx.fail(statusCode, exception);
+          return;
+        }
+      }
+    }
+
+    // fallback 500
+    ctx.fail(exception);
+  }
+
+  private void fail(RoutingContext ctx, int code, String msg) {
+    ctx.fail(code, new IllegalStateException(msg));
   }
 }

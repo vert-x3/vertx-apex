@@ -36,7 +36,7 @@ import io.vertx.ext.web.impl.RoutingContextInternal;
 /**
  * @author <a href="mailto:pmlopes@gmail.com">Paulo Lopes</a>
  */
-public class HotpAuthHandlerImpl extends AuthenticationHandlerImpl<HotpAuth> implements OtpAuthHandler, OrderListener {
+public class HotpAuthHandlerImpl extends WebAuthenticationHandlerImpl<HotpAuth> implements OtpAuthHandler, OrderListener {
 
   private final OtpKeyGenerator otpKeyGen;
 

@@ -808,14 +808,14 @@ public class WebExamples {
 
     router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
 
-    AuthenticationHandler basicAuthHandler = BasicAuthHandler.create(authProvider);
+    WebAuthenticationHandler basicAuthHandler = BasicAuthHandler.create(authProvider);
   }
 
   public void example38(Vertx vertx, AuthenticationProvider authProvider, Router router) {
 
     router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
 
-    AuthenticationHandler basicAuthHandler = BasicAuthHandler.create(authProvider);
+    WebAuthenticationHandler basicAuthHandler = BasicAuthHandler.create(authProvider);
 
     // All requests to paths starting with '/private/' will be protected
     router.route("/private/*").handler(basicAuthHandler);
@@ -1102,7 +1102,7 @@ public class WebExamples {
 
     router.route().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
 
-    AuthenticationHandler basicAuthHandler = BasicAuthHandler.create(authProvider);
+    WebAuthenticationHandler basicAuthHandler = BasicAuthHandler.create(authProvider);
 
     router.route("/eventbus/*").handler(basicAuthHandler);
 
@@ -1813,7 +1813,7 @@ public class WebExamples {
     router.allowForward(AllowForwardHeaders.NONE);
   }
 
-  public void example78(Router router, AuthenticationHandler authNHandlerA, AuthenticationHandler authNHandlerB, AuthenticationHandler authNHandlerC) {
+  public void example78(Router router, WebAuthenticationHandler authNHandlerA, WebAuthenticationHandler authNHandlerB, WebAuthenticationHandler authNHandlerC) {
 
     // Chain will verify (A Or (B And C))
     ChainAuthHandler chain =

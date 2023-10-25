@@ -26,7 +26,7 @@ import io.vertx.ext.web.handler.impl.RedirectAuthHandlerImpl;
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 @VertxGen
-public interface RedirectAuthHandler extends AuthenticationHandler {
+public interface RedirectAuthHandler extends WebAuthenticationHandler {
 
   /**
    * Default path the user will be redirected to

@@ -33,7 +33,7 @@ import java.util.function.Function;
  * @author Paulo Lopes
  */
 @VertxGen
-public interface APIKeyHandler extends AuthenticationHandler {
+public interface APIKeyHandler extends WebAuthenticationHandler {
 
   /**
    * Create an API Key authentication handler

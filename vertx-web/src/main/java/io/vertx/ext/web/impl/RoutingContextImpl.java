@@ -25,6 +25,7 @@ import io.vertx.core.file.FileSystem;
 import io.vertx.core.http.*;
 import io.vertx.core.http.impl.HttpUtils;
 import io.vertx.core.impl.ContextInternal;
+import io.vertx.ext.auth.common.UserContext;
 import io.vertx.ext.web.*;
 import io.vertx.ext.web.handler.HttpException;
 import io.vertx.ext.web.handler.impl.UserHolder;
@@ -140,6 +141,11 @@ public class RoutingContextImpl extends RoutingContextImplBase {
     if (!iterateNext()) {
       checkHandleNoMatch();
     }
+  }
+
+  @Override
+  public void onContinue() {
+    next();
   }
 
   private void checkHandleNoMatch() {

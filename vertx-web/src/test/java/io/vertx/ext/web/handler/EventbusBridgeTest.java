@@ -1166,7 +1166,7 @@ public class EventbusBridgeTest extends WebTestBase {
     testError(new JsonObject().put("type", "send").put("address", addr).put("body", "foo"), "access_denied");
   }
 
-  private AuthenticationHandler addLoginHandler(AuthenticationProvider authProvider) {
+  private WebAuthenticationHandler addLoginHandler(AuthenticationProvider authProvider) {
     return SimpleAuthenticationHandler.create()
       .authenticate(ctx -> {
         if (ctx.user().get() == null) {

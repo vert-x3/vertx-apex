@@ -16,7 +16,7 @@
 package io.vertx.ext.web.openapi.router.impl;
 
 import io.vertx.codegen.annotations.Fluent;
-import io.vertx.ext.web.handler.AuthenticationHandler;
+import io.vertx.ext.web.handler.WebAuthenticationHandler;
 import io.vertx.ext.web.openapi.router.RouterBuilder;
 
 interface RouterBuilderInternal extends RouterBuilder {
@@ -33,5 +33,5 @@ interface RouterBuilderInternal extends RouterBuilder {
    * @return self
    */
   @Fluent
-  RouterBuilder security(String securitySchemeName, AuthenticationHandler handler, String callback);
+  RouterBuilder security(String securitySchemeName, WebAuthenticationHandler handler, String callback);
 }

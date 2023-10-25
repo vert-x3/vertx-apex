@@ -20,7 +20,7 @@ public class ChainAuthHandlerTest extends WebTestBase {
     super.setUp();
 
     authProvider = PropertyFileAuthentication.create(vertx, "login/loginusers.properties");
-    AuthenticationHandler redirectAuthHandler = RedirectAuthHandler.create(authProvider);
+    WebAuthenticationHandler redirectAuthHandler = RedirectAuthHandler.create(authProvider);
 
     // create a chain
     chain = ChainAuthHandler.any()

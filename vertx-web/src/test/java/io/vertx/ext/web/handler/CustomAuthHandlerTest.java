@@ -24,6 +24,7 @@ import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.auth.authentication.Credentials;
 import io.vertx.ext.auth.authentication.UsernamePasswordCredentials;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.HttpException;
 import org.junit.Test;
 
 import static org.mockito.Mockito.*;
@@ -31,11 +32,11 @@ import static org.mockito.Mockito.*;
 public class CustomAuthHandlerTest extends AuthHandlerTestBase {
 
   @Override
-  protected AuthenticationHandler createAuthHandler(AuthenticationProvider authProvider) {
+  protected WebAuthenticationHandler createAuthHandler(AuthenticationProvider authProvider) {
     return newAuthHandler(authProvider, null);
   }
 
-  private AuthenticationHandler newAuthHandler(AuthenticationProvider authProvider, Handler<Throwable> exceptionProcessor) {
+  private WebAuthenticationHandler newAuthHandler(AuthenticationProvider authProvider, Handler<Throwable> exceptionProcessor) {
 
     return SimpleAuthenticationHandler.create()
       .authenticate(ctx -> {

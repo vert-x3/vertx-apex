@@ -37,7 +37,7 @@ import java.util.function.Function;
  * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
 @VertxGen
-public interface SimpleAuthenticationHandler extends AuthenticationHandler {
+public interface SimpleAuthenticationHandler extends WebAuthenticationHandler {
 
   /**
    * Creates a new instance of the simple authentication handler.

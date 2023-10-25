@@ -31,10 +31,10 @@ import io.vertx.ext.web.handler.HttpException;
 import io.vertx.ext.web.handler.WebAuthnHandler;
 import io.vertx.ext.web.impl.OrderListener;
 import io.vertx.ext.web.impl.Origin;
-import io.vertx.ext.web.impl.UserContextInternal;
+import io.vertx.ext.auth.common.UserContextInternal;
 import io.vertx.ext.web.impl.RoutingContextInternal;
 
-public class WebAuthnHandlerImpl extends AuthenticationHandlerImpl<WebAuthn> implements WebAuthnHandler, OrderListener {
+public class WebAuthnHandlerImpl extends WebAuthenticationHandlerImpl<WebAuthn> implements WebAuthnHandler, OrderListener {
 
   private static final boolean CONFORMANCE = Boolean.getBoolean("io.vertx.ext.web.fido2.conformance.tests");
 

@@ -13,20 +13,22 @@
  *
  *  You may elect to redistribute this code under either of these licenses.
  */
-package io.vertx.ext.web.handler.impl;
+package io.vertx.ext.auth.common.handler.impl;
 
 import io.vertx.core.Future;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
-import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.auth.common.AuthenticationContext;
+
+import static io.vertx.ext.web.handler.HttpException.*;
 
 /**
  * This a common handler for auth handler that use the `Authorization` HTTP header.
  *
  * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
-public abstract class HTTPAuthorizationHandler<T extends AuthenticationProvider> extends AuthenticationHandlerImpl<T> {
+public abstract class HTTPAuthorizationHandler<C extends AuthenticationContext, T extends AuthenticationProvider> extends AuthenticationHandlerImpl<C, T> {
 
   // this should match the IANA registry: https://www.iana.org/assignments/http-authschemes/http-authschemes.xhtml
   public enum Type {
@@ -73,11 +75,11 @@ public abstract class HTTPAuthorizationHandler<T extends AuthenticationProvider>
     }
   }
 
-  protected final Future<String> parseAuthorization(RoutingContext ctx) {
+  protected final Future<String> parseAuthorization(C ctx) {
     return parseAuthorization(ctx, false);
   }
 
-  protected final Future<String> parseAuthorization(RoutingContext ctx, boolean optional) {
+  protected final Future<String> parseAuthorization(C ctx, boolean optional) {
 
     final HttpServerRequest request = ctx.request();
     final String authorization = request.headers().get(HttpHeaders.AUTHORIZATION);
@@ -109,7 +111,7 @@ public abstract class HTTPAuthorizationHandler<T extends AuthenticationProvider>
   }
 
   @Override
-  public boolean setAuthenticateHeader(RoutingContext context) {
+  public boolean setAuthenticateHeader(C context) {
     if (realm != null && realm.length() > 0) {
       context.response()
         .headers()

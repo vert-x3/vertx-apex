@@ -28,7 +28,7 @@ import io.vertx.ext.web.handler.RedirectAuthHandler;
  * @author <a href="http://tfox.org">Tim Fox</a>
  * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
-public class RedirectAuthHandlerImpl extends AuthenticationHandlerImpl<AuthenticationProvider> implements RedirectAuthHandler {
+public class RedirectAuthHandlerImpl extends WebAuthenticationHandlerImpl<AuthenticationProvider> implements RedirectAuthHandler {
 
   private final String loginRedirectURL;
   private final String returnURLParam;

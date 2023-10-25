@@ -10,7 +10,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.json.pointer.JsonPointer;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.web.handler.BodyHandler;
-import io.vertx.ext.web.impl.UserContextInternal;
+import io.vertx.ext.auth.common.UserContextInternal;
 import io.vertx.ext.web.validation.BaseValidationHandlerTest;
 import io.vertx.ext.web.validation.builder.ValidationHandlerBuilder;
 import io.vertx.json.schema.JsonSchema;

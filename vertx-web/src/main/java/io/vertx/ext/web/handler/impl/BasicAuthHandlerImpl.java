@@ -35,7 +35,7 @@ import static io.vertx.ext.auth.impl.Codec.base64Decode;
  * @author <a href="http://pmlopes@gmail.com">Paulo Lopes</a>
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
-public class BasicAuthHandlerImpl extends HTTPAuthorizationHandler<AuthenticationProvider> implements BasicAuthHandler {
+public class BasicAuthHandlerImpl extends WebHTTPAuthorizationHandler<AuthenticationProvider> implements BasicAuthHandler {
 
   public BasicAuthHandlerImpl(AuthenticationProvider authProvider, String realm) {
     super(authProvider, Type.BASIC, realm);

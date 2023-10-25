@@ -22,7 +22,6 @@ import io.vertx.ext.auth.otp.hotp.HotpAuth;
 import io.vertx.ext.auth.otp.totp.TotpAuth;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.UserContext;
 import io.vertx.ext.web.handler.impl.HotpAuthHandlerImpl;
 import io.vertx.ext.web.handler.impl.TotpAuthHandlerImpl;
 
@@ -32,7 +31,7 @@ import io.vertx.ext.web.handler.impl.TotpAuthHandlerImpl;
  * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
 @VertxGen
-public interface OtpAuthHandler extends AuthenticationHandler {
+public interface OtpAuthHandler extends WebAuthenticationHandler {
 
   /**
    * Create a new instance of this handler using a time based one time password authentication provider.

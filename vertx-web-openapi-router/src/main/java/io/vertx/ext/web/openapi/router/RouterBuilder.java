@@ -19,7 +19,6 @@ import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.handler.AuthenticationHandler;
 import io.vertx.openapi.contract.OpenAPIContract;
 import io.vertx.ext.web.openapi.router.impl.RouterBuilderImpl;
 import io.vertx.openapi.validation.RequestUtils;

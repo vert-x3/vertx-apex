@@ -30,10 +30,12 @@ import io.vertx.ext.web.impl.RoutingContextInternal;
 
 import java.util.function.Function;
 
+import static io.vertx.ext.web.handler.HttpException.UNAUTHORIZED;
+
 /**
  * @author <a href="mailto:pmlopes@gmail.com">Paulo Lopes</a>
  */
-public class APIKeyHandlerImpl extends AuthenticationHandlerImpl<AuthenticationProvider> implements APIKeyHandler {
+public class APIKeyHandlerImpl extends WebAuthenticationHandlerImpl<AuthenticationProvider> implements APIKeyHandler {
 
   enum Type {
     HEADER,

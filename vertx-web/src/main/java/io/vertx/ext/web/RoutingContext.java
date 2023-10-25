@@ -24,6 +24,8 @@ import io.vertx.core.http.impl.MimeMapping;
 import io.vertx.core.impl.ContextInternal;
 import io.vertx.core.json.EncodeException;
 import io.vertx.core.json.Json;
+import io.vertx.ext.auth.common.AuthenticationContext;
+import io.vertx.ext.auth.common.UserContext;
 import io.vertx.ext.web.impl.ParsableMIMEValue;
 import io.vertx.ext.web.impl.Utils;
 
@@ -55,7 +57,7 @@ import static io.vertx.codegen.annotations.GenIgnore.PERMITTED_TYPE;
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 @VertxGen
-public interface RoutingContext {
+public interface RoutingContext extends AuthenticationContext {
 
   /**
    * @return the HTTP request object

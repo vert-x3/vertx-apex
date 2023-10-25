@@ -25,7 +25,7 @@ import io.vertx.ext.web.handler.impl.ChainAuthHandlerImpl;
  * @author <a href="mailto:plopes@redhat.com">Paulo Lopes</a>
  */
 @VertxGen
-public interface ChainAuthHandler extends AuthenticationHandler {
+public interface ChainAuthHandler extends WebAuthenticationHandler {
 
   /**
    * Create a chain authentication handler that will assert that all handlers pass the verification.
@@ -51,5 +51,5 @@ public interface ChainAuthHandler extends AuthenticationHandler {
    *
    */
   @Fluent
-  ChainAuthHandler add(AuthenticationHandler other);
+  ChainAuthHandler add(WebAuthenticationHandler other);
 }

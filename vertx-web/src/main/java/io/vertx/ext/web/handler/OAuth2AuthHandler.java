@@ -32,7 +32,7 @@ import java.util.List;
  * @author Paulo Lopes
  */
 @VertxGen
-public interface OAuth2AuthHandler extends AuthenticationHandler {
+public interface OAuth2AuthHandler extends WebAuthenticationHandler {
 
   /**
    * Create a OAuth2 auth handler with host pinning. When no scopes are explicit declared, the default scopes will be

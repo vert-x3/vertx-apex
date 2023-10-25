@@ -11,7 +11,7 @@ import io.vertx.ext.web.impl.RoutingContextInternal;
 
 import java.util.function.Function;
 
-public class SimpleAuthenticationHandlerImpl extends AuthenticationHandlerImpl<NOOPAuthenticationProvider> implements SimpleAuthenticationHandler {
+public class SimpleAuthenticationHandlerImpl extends WebAuthenticationHandlerImpl<NOOPAuthenticationProvider> implements SimpleAuthenticationHandler {
 
   private Function<RoutingContext, Future<User>> authn;
 

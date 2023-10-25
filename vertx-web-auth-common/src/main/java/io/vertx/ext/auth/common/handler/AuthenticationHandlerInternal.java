@@ -1,21 +1,21 @@
-package io.vertx.ext.web.handler.impl;
+package io.vertx.ext.auth.common.handler;
 
 import io.vertx.core.Future;
 import io.vertx.ext.auth.User;
-import io.vertx.ext.web.RoutingContext;
-import io.vertx.ext.web.handler.AuthenticationHandler;
+import io.vertx.ext.auth.common.AuthenticationContext;
+import io.vertx.ext.auth.common.AuthenticationHandler;
 
-public interface AuthenticationHandlerInternal extends AuthenticationHandler {
+public interface AuthenticationHandlerInternal<C extends AuthenticationContext> extends AuthenticationHandler<C> {
 
   /**
    * Parses the credentials from the request into a JsonObject. The implementation should
    * be able to extract the required info for the auth provider in the format the provider
    * expects.
    *
-   * @param context the routing context
+   * @param context the authentication context
    * @return future user to be called once the information is available.
    */
-  Future<User> authenticate(RoutingContext context);
+  Future<User> authenticate(C context);
 
   /**
    * Applies a {@code WWW-Authenticate} Response Header.
@@ -24,10 +24,10 @@ public interface AuthenticationHandlerInternal extends AuthenticationHandler {
    * acceptable Authorization header is not sent, the server responds with
    * a "401 Unauthorized" status code, and a WWW-Authenticate header.
    *
-   * @param context the routing context
+   * @param context the authentication context
    * @return the {@code true} if a header was added.
    */
-  default boolean setAuthenticateHeader(RoutingContext context) {
+  default boolean setAuthenticateHeader(C context) {
     return false;
   }
 
@@ -36,10 +36,11 @@ public interface AuthenticationHandlerInternal extends AuthenticationHandler {
    * Overrides must call {@link RoutingContext#next()} on success. Implementations must call this handler
    * at the end of the authentication process.
    *
-   * @param ctx the routing context
+   * @param ctx the authentication context
+   * @param authenticated the authenticated user
    */
-  default void postAuthentication(RoutingContext ctx) {
-    ctx.next();
+  default void postAuthentication(C ctx, User authenticated) {
+    ctx.onContinue();
   }
 
   /**

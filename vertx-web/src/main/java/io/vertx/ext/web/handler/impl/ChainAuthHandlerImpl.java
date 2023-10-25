@@ -8,17 +8,19 @@ import io.vertx.core.impl.logging.Logger;
 import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.ext.auth.User;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
+import io.vertx.ext.auth.common.handler.AuthenticationHandlerInternal;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.HttpException;
 import io.vertx.ext.web.handler.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class ChainAuthHandlerImpl extends AuthenticationHandlerImpl<AuthenticationProvider> implements ChainAuthHandler {
+public class ChainAuthHandlerImpl extends WebAuthenticationHandlerImpl<AuthenticationProvider> implements ChainAuthHandler {
 
   private static final Logger LOG = LoggerFactory.getLogger(ChainAuthHandler.class);
 
-  private final List<AuthenticationHandlerInternal> handlers = new ArrayList<>();
+  private final List<AuthenticationHandlerInternal<RoutingContext>> handlers = new ArrayList<>();
   private final boolean all;
 
   private int willRedirect = -1;
@@ -34,11 +36,11 @@ public class ChainAuthHandlerImpl extends AuthenticationHandlerImpl<Authenticati
   }
 
   @Override
-  public synchronized ChainAuthHandler add(AuthenticationHandler other) {
+  public synchronized ChainAuthHandler add(WebAuthenticationHandler other) {
     if (performsRedirect()) {
       throw new IllegalStateException("Cannot add a handler after a handler known to perform a HTTP redirect: " + handlers.get(willRedirect));
     }
-    final AuthenticationHandlerInternal otherInternal = (AuthenticationHandlerInternal) other;
+    final AuthenticationHandlerInternal<RoutingContext> otherInternal = (AuthenticationHandlerInternal<RoutingContext>) other;
     // control if we should not allow more handlers due to the possibility of a redirect to happen
     if (otherInternal.performsRedirect()) {
       willRedirect = handlers.size();
@@ -77,7 +79,7 @@ public class ChainAuthHandlerImpl extends AuthenticationHandlerImpl<Authenticati
     }
 
     // parse the request in order to extract the credentials object
-    final AuthenticationHandlerInternal authHandler = handlers.get(idx);
+    final AuthenticationHandlerInternal<RoutingContext> authHandler = handlers.get(idx);
 
     authHandler
       .authenticate(ctx)
@@ -120,7 +122,7 @@ public class ChainAuthHandlerImpl extends AuthenticationHandlerImpl<Authenticati
   @Override
   public boolean setAuthenticateHeader(RoutingContext ctx) {
     boolean added = false;
-    for (AuthenticationHandlerInternal authHandler : handlers) {
+    for (AuthenticationHandlerInternal<RoutingContext> authHandler : handlers) {
       if (all && added) {
         // we can only allow 1 header in this case,
         // otherwise we tell the user agent to pick the strongest,
@@ -132,4 +134,5 @@ public class ChainAuthHandlerImpl extends AuthenticationHandlerImpl<Authenticati
     }
     return added;
   }
+
 }

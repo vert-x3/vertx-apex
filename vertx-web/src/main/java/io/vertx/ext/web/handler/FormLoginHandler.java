@@ -29,7 +29,7 @@ import io.vertx.ext.web.handler.impl.FormLoginHandlerImpl;
  * @author <a href="http://tfox.org">Tim Fox</a>
  */
 @VertxGen
-public interface FormLoginHandler extends AuthenticationHandler {
+public interface FormLoginHandler extends WebAuthenticationHandler {
 
   /**
    * The default value of the form attribute which will contain the username

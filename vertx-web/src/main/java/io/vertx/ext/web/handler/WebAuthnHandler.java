@@ -27,7 +27,7 @@ import io.vertx.ext.web.handler.impl.WebAuthnHandlerImpl;
  * @author Paulo Lopes
  */
 @VertxGen
-public interface WebAuthnHandler extends AuthenticationHandler {
+public interface WebAuthnHandler extends WebAuthenticationHandler {
 
   /**
    * Create a WebAuthN auth handler. This handler expects at least the response callback to be installed.

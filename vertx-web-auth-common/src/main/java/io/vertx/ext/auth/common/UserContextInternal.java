@@ -1,7 +1,6 @@
-package io.vertx.ext.web.impl;
+package io.vertx.ext.auth.common;
 
 import io.vertx.ext.auth.User;
-import io.vertx.ext.web.UserContext;
 
 public interface UserContextInternal extends UserContext {
 
