@@ -146,7 +146,7 @@
       <plugin>
         <groupId>org.bsc.maven</groupId>
         <artifactId>maven-processor-plugin</artifactId>
-        <version>3.3.3</version>
+        <version>5.0-jdk8</version>
         <executions>
           <execution>
             <id>generate-sources</id>
