@@ -33,6 +33,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.stream.Collectors;
 
 public class OpenAPIHolderImpl implements OpenAPIHolder {
@@ -52,7 +53,7 @@ public class OpenAPIHolderImpl implements OpenAPIHolder {
   public OpenAPIHolderImpl(Vertx vertx, HttpClient client, FileSystem fs, OpenAPILoaderOptions options) {
     this.vertx = vertx;
     absolutePaths = new ConcurrentHashMap<>();
-    externalSolvingRefs = new ConcurrentHashMap<>();
+    externalSolvingRefs = new ConcurrentSkipListMap<>();;
     this.client = client;
     this.fs = fs;
     this.options = options;
