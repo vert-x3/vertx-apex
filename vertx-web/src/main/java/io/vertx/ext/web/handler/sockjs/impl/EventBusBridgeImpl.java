@@ -80,13 +80,13 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
     try {
       msg = new JsonObject(data.toString());
     } catch (DecodeException e) {
-      replyError(sock, "invalid_json");
+      replyError(sock, "INVALID_JSON", "Malformed JSON");
       return;
     }
 
     String type = msg.getString("type");
     if (type == null) {
-      replyError(sock, "missing_type");
+      replyError(sock, "MISSING_TYPE", "Message type is missing");
       return;
     }
 
@@ -95,7 +95,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
     } else {
       String address = msg.getString("address");
       if (address == null) {
-        replyError(sock, "missing_address");
+        replyError(sock, "MISSING_ADDRESS", "Message address is missing");
         return;
       }
       switch (type) {
@@ -113,7 +113,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
           break;
         default:
           LOG.error("Invalid type in incoming message: " + type);
-          replyError(sock, "invalid_type");
+          replyError(sock, "INVALID_TYPE", "Invalid message type");
       }
     }
 
@@ -165,11 +165,11 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
       () -> {
         String address = msg.getString("address");
         if (address == null) {
-          replyError(sock, "missing_address");
+          replyError(sock, "MISSING_ADDRESS", "Message address is missing");
           return;
         }
         doSendOrPub(send, sock, address, msg);
-      }, () -> replyError(sock, "rejected"));
+      }, () -> replyError(sock, "REJECTED", "Message is rejected"));
   }
 
   private boolean checkMaxHandlers(SockJSSocket sock, SockInfo info) {
@@ -177,7 +177,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
       return true;
     } else {
       LOG.warn("Refusing to register as max_handlers_per_socket reached already");
-      replyError(sock, "max_handlers_reached");
+      replyError(sock, "HANDLERS_MAX_LIMIT", "Registration handlers exceed the maximum limit");
       return false;
     }
   }
@@ -192,11 +192,11 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
         final boolean debug = LOG.isDebugEnabled();
         final String address = rawMsg.getString("address");
         if (address == null) {
-          replyError(sock, "missing_address");
+          replyError(sock, "MISSING_ADDRESS", "Message address is missing");
           return;
         } else if (address.length() > maxAddressLength) {
           LOG.warn("Refusing to register as address length > max_address_length");
-          replyError(sock, "max_address_length_reached");
+          replyError(sock, "ADDRESS_MAX_LENGTH", "Address exceeds maximum length");
           return;
         }
         Match match = checkMatches(false, address, null);
@@ -206,7 +206,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
           // loop could DDoS the bridge.
           if (registrations.containsKey(address)) {
             LOG.warn("Refusing to register as address is already registered");
-            replyError(sock, "address_already_registered");
+            replyError(sock, "ADDRESS_ALREADY_REGISTERED", "Address is already registered");
             return;
           }
 
@@ -247,7 +247,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
               checkCallHook(() -> new BridgeEventImpl(BridgeEventType.REGISTERED, rawMsg, sock));
             } else {
               LOG.warn("Cannot register handler for address " + address, ar.cause());
-              replyError(sock, "registration_failure");
+              replyError(sock, "ADDRESS_REGISTRATION", "Address registration is failed");
             }
           });
         } else {
@@ -255,9 +255,9 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
           if (debug) {
             LOG.debug("Cannot register handler for address " + address + " because there is no inbound match");
           }
-          replyError(sock, "access_denied");
+          replyError(sock, "ACCESS_DENIED", "Address access is denied");
         }
-      }, () -> replyError(sock, "rejected"));
+      }, () -> replyError(sock, "REJECTED", "Message is rejected"));
   }
 
   private void internalHandleUnregister(SockJSSocket sock, JsonObject rawMsg, Map<String, MessageConsumer<?>> registrations) {
@@ -265,7 +265,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
       () -> {
         String address = rawMsg.getString("address");
         if (address == null) {
-          replyError(sock, "missing_address");
+          replyError(sock, "MISSING_ADDRESS","Message address is missing");
           return;
         }
         Match match = checkMatches(false, address, null);
@@ -280,9 +280,9 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
           if (LOG.isDebugEnabled()) {
             LOG.debug("Cannot unregister handler for address " + address + " because there is no inbound match");
           }
-          replyError(sock, "access_denied");
+          replyError(sock, "ACCESS_DENIED", "Address access is denied");
         }
-      }, () -> replyError(sock, "rejected"));
+      }, () -> replyError(sock, "REJECTED", "Message is rejected"));
   }
 
   private void internalHandlePing(final SockJSSocket sock) {
@@ -317,7 +317,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
             checkCallHook(() -> new BridgeEventImpl(BridgeEventType.SOCKET_IDLE, null, sock),
               // We didn't receive a ping in time so close the socket
               ((SockJSSocketBase) sock)::closeAfterSessionExpired,
-              () -> replyError(sock, "rejected"));
+              () -> replyError(sock, "REJECTED", "Message is rejected"));
           }
         });
         SockInfo sockInfo = new SockInfo();
@@ -334,9 +334,11 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
   private void handleSocketException(SockJSSocket sock, Throwable err, Map<String, MessageConsumer<?>> registrations) {
     LOG.error("SockJSSocket exception", err);
     clearSocketState(sock, registrations);
-    final JsonObject msg = new JsonObject().put("type", "err").put("failureType", "socketException");
+    final JsonObject msg = new JsonObject().put("type", "err").put("failureCode", -1).put("failureType", "SOCKET_EXCEPTION");
     if (err != null) {
       msg.put("message", err.getMessage());
+    } else {
+      msg.put("message", "A socket exception occurred while attempting to establish or maintain a network connection");
     }
     checkCallHook(() -> new BridgeEventImpl(BridgeEventType.SOCKET_ERROR, msg, sock));
   }
@@ -408,7 +410,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
     if (replyAddress != null && replyAddress.length() > 36) {
       // vertx-eventbus.js ids are always 36 chars
       LOG.error("Will not send message, reply address is > 36 chars");
-      replyError(sock, "invalid_reply_address");
+      replyError(sock, "INVALID_REPLY_ADDRESS", "Reply address is invalid");
       return;
     }
     final boolean debug = LOG.isDebugEnabled();
@@ -431,19 +433,19 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
               if (ok) {
                 checkAndSend(send, address, body, headers, sock, replyAddress, awaitingReply);
               } else {
-                replyError(sock, "access_denied");
+                replyError(sock, "ACCESS_DENIED", "Address access is denied");
                 if (debug) {
                   LOG.debug("Inbound message for address " + address + " rejected because is not authorised");
                 }
               }
             })
             .onFailure(err -> {
-              replyError(sock, "auth_error");
+              replyError(sock, "AUTHZ", "Authorization failed");
               LOG.error("Error in performing authorization", err);
             });
         } else {
           // no web session
-          replyError(sock, "not_logged_in");
+          replyError(sock, "AUTHN", "Authentication is required");
           if (debug) {
             LOG.debug("Inbound message for address " + address +
               " rejected because it requires auth and user is not authenticated");
@@ -454,7 +456,7 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
       }
     } else {
       // inbound match failed
-      replyError(sock, "access_denied");
+      replyError(sock, "ACCESS_DENIED", "Address access is denied");
       if (debug) {
         LOG.debug("Inbound message for address " + address + " rejected because there is no match");
       }
@@ -590,8 +592,12 @@ public class EventBusBridgeImpl implements Handler<SockJSSocket> {
     return m.matches();
   }
 
-  private static void replyError(SockJSSocket sock, String err) {
-    JsonObject envelope = new JsonObject().put("type", "err").put("body", err);
+  private static void replyError(SockJSSocket sock, String type, String message) {
+    JsonObject envelope = new JsonObject()
+      .put("type", "err")
+      .put("failureCode", -1)
+      .put("failureType", type)
+      .put("message", message);
     sock.write(buffer(envelope.encode()));
   }
 

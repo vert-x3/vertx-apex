@@ -2549,8 +2549,8 @@ follow the bridge wire protocol and look like this:
 ----
 {
   "type": "err",
-  "failureType": "socketException",
-  "message": "optionally a message from the exception being raised"
+  "failureType": "SOCKET_EXCEPTION",
+  "message": "A message from the exception being raised"
 }
 ----
 

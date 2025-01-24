@@ -213,7 +213,7 @@ public class EventbusBridgeTest extends WebTestBase {
         }
       }));
     testError(new JsonObject().put("type", "send").put("address", addr).put("body", "foobar"),
-      "rejected");
+      "REJECTED", "Message is rejected");
     await();
   }
 
@@ -228,7 +228,7 @@ public class EventbusBridgeTest extends WebTestBase {
         be.complete(true);
       }));
     testError(new JsonObject().put("type", "send").put("address", addr).put("body", "foobar"),
-      "missing_address");
+      "MISSING_ADDRESS", "Message address is missing");
     await();
   }
 
@@ -284,7 +284,7 @@ public class EventbusBridgeTest extends WebTestBase {
         }
       }));
     testError(new JsonObject().put("type", "publish").put("address", addr).put("body", "foobar"),
-      "rejected");
+      "REJECTED", "Message is rejected");
     await();
   }
 
@@ -299,7 +299,7 @@ public class EventbusBridgeTest extends WebTestBase {
         be.complete(true);
       }));
     testError(new JsonObject().put("type", "publish").put("address", addr).put("body", "foobar"),
-      "missing_address");
+      "MISSING_ADDRESS", "Message address is missing");
     await();
   }
 
@@ -333,7 +333,7 @@ public class EventbusBridgeTest extends WebTestBase {
         }
       }));
     testError(new JsonObject().put("type", "register").put("address", addr),
-      "rejected");
+      "REJECTED", "Message is rejected");
     await();
   }
 
@@ -348,7 +348,7 @@ public class EventbusBridgeTest extends WebTestBase {
         be.complete(true);
       }));
     testError(new JsonObject().put("type", "register").put("address", addr).put("body", "foobar"),
-      "missing_address");
+      "MISSING_ADDRESS", "Message address is missing");
     await();
   }
 
@@ -468,7 +468,7 @@ public class EventbusBridgeTest extends WebTestBase {
         }
       }));
     testError(new JsonObject().put("type", "unregister").put("address", addr),
-      "rejected");
+      "REJECTED", "Message is rejected");
     await();
   }
 
@@ -483,7 +483,7 @@ public class EventbusBridgeTest extends WebTestBase {
         be.complete(true);
       }));
     testError(new JsonObject().put("type", "unregister").put("address", addr).put("body", "foobar"),
-      "missing_address");
+      "MISSING_ADDRESS", "Message address is missing");
     await();
   }
 
@@ -624,28 +624,28 @@ public class EventbusBridgeTest extends WebTestBase {
   public void testInvalidType() throws Exception {
     router.route("/eventbus/*").subRouter(
       sockJS.bridge(allAccessOptions));
-    testError(new JsonObject().put("type", "wibble").put("address", "addr"), "invalid_type");
+    testError(new JsonObject().put("type", "wibble").put("address", "addr"), "INVALID_TYPE", "Invalid message type");
   }
 
   @Test
   public void testInvalidJson() throws Exception {
     router.route("/eventbus/*").subRouter(
       sockJS.bridge(allAccessOptions));
-    testError("oqiwjdioqwjdoiqjwd", "invalid_json");
+    testError("oqiwjdioqwjdoiqjwd", "INVALID_JSON", "Malformed JSON");
   }
 
   @Test
   public void testMissingType() throws Exception {
     router.route("/eventbus/*").subRouter(
       sockJS.bridge(allAccessOptions));
-    testError(new JsonObject().put("address", "someaddress"), "missing_type");
+    testError(new JsonObject().put("address", "someaddress"), "MISSING_TYPE", "Message type is missing");
   }
 
   @Test
   public void testMissingAddress() throws Exception {
     router.route("/eventbus/*").subRouter(
       sockJS.bridge(allAccessOptions));
-    testError(new JsonObject().put("type", "send").put("body", "hello world"), "missing_address");
+    testError(new JsonObject().put("type", "send").put("body", "hello world"), "MISSING_ADDRESS", "Message address is missing");
   }
 
   @Test
@@ -653,7 +653,7 @@ public class EventbusBridgeTest extends WebTestBase {
     router.route("/eventbus/*").subRouter(
       sockJS.bridge(defaultOptions));
     testError(new JsonObject().put("type", "send").put("address", addr).put("body", "hello world"),
-      "access_denied");
+      "ACCESS_DENIED", "Address access is denied");
   }
 
   @Test
@@ -663,7 +663,7 @@ public class EventbusBridgeTest extends WebTestBase {
       sockJS.bridge(defaultOptions.addInboundPermitted(new PermittedOptions().setAddress(addr))));
     testSend(addr, "foobar");
     testError(new JsonObject().put("type", "send").put("address", "allow2").put("body", "blah"),
-      "access_denied");
+      "ACCESS_DENIED", "Address access is denied");
   }
 
   @Test
@@ -674,7 +674,7 @@ public class EventbusBridgeTest extends WebTestBase {
     testSend("allow1", "foobar");
     testSend("allow2", "foobar");
     testError(new JsonObject().put("type", "send").put("address", "hello").put("body", "blah"),
-      "access_denied");
+      "ACCESS_DENIED", "Address access is denied");
   }
 
   @Test
@@ -687,7 +687,7 @@ public class EventbusBridgeTest extends WebTestBase {
     testSend("allow1", "foobar");
     testSend("allow2", "foobar");
     testError(new JsonObject().put("type", "send").put("address", "allow3").put("body", "blah"),
-      "access_denied");
+      "ACCESS_DENIED", "Address access is denied");
   }
 
   @Test
@@ -702,7 +702,7 @@ public class EventbusBridgeTest extends WebTestBase {
     testSend("ballow1", "foobar");
     testSend("ballow2", "foobar");
     testError(new JsonObject().put("type", "send").put("address", "hello").put("body", "blah"),
-      "access_denied");
+      "ACCESS_DENIED", "Address access is denied");
   }
 
   @Test
@@ -716,9 +716,9 @@ public class EventbusBridgeTest extends WebTestBase {
     testSend("ballow1", "foobar");
     testSend("ballow2", "foobar");
     testError(new JsonObject().put("type", "send").put("address", "hello").put("body", "blah"),
-      "access_denied");
+      "ACCESS_DENIED", "Address access is denied");
     testError(new JsonObject().put("type", "send").put("address", "allow2").put("body", "blah"),
-      "access_denied");
+      "ACCESS_DENIED", "Address access is denied");
   }
 
   @Test
@@ -732,7 +732,7 @@ public class EventbusBridgeTest extends WebTestBase {
     testSend(addr, json1);
     json1.remove("fib");
     testError(new JsonObject().put("type", "send").put("address", addr).put("body", json1),
-      "access_denied");
+      "ACCESS_DENIED", "Address access is denied");
   }
 
   @Test
@@ -746,9 +746,9 @@ public class EventbusBridgeTest extends WebTestBase {
     testSend(addr, json1);
     json1.remove("fib");
     testError(new JsonObject().put("type", "send").put("address", addr).put("body", json1),
-      "access_denied");
+      "ACCESS_DENIED", "Address access is denied");
     testError(new JsonObject().put("type", "send").put("address", "otheraddress").put("body", json1),
-      "access_denied");
+      "ACCESS_DENIED", "Address access is denied");
   }
 
   @Test
@@ -758,7 +758,7 @@ public class EventbusBridgeTest extends WebTestBase {
       sockJS.bridge(defaultOptions.addOutboundPermitted(new PermittedOptions().setAddress(addr))));
     testReceive(addr, "foobar");
     testError(new JsonObject().put("type", "register").put("address", "allow2").put("body", "blah"),
-      "access_denied");
+      "ACCESS_DENIED", "Address access is denied");
   }
 
   @Test
@@ -769,7 +769,7 @@ public class EventbusBridgeTest extends WebTestBase {
     testReceive("allow1", "foobar");
     testReceive("allow2", "foobar");
     testError(new JsonObject().put("type", "register").put("address", "hello").put("body", "blah"),
-      "access_denied");
+      "ACCESS_DENIED", "Address access is denied");
   }
 
   @Test
@@ -782,7 +782,7 @@ public class EventbusBridgeTest extends WebTestBase {
     testReceive("allow1", "foobar");
     testReceive("allow2", "foobar");
     testError(new JsonObject().put("type", "register").put("address", "allow3").put("body", "blah"),
-      "access_denied");
+      "ACCESS_DENIED", "Address access is denied");
   }
 
   @Test
@@ -797,7 +797,7 @@ public class EventbusBridgeTest extends WebTestBase {
     testReceive("ballow1", "foobar");
     testReceive("ballow2", "foobar");
     testError(new JsonObject().put("type", "register").put("address", "hello").put("body", "blah"),
-      "access_denied");
+      "ACCESS_DENIED", "Address access is denied");
   }
 
   @Test
@@ -811,9 +811,9 @@ public class EventbusBridgeTest extends WebTestBase {
     testReceive("ballow1", "foobar");
     testReceive("ballow2", "foobar");
     testError(new JsonObject().put("type", "register").put("address", "hello").put("body", "blah"),
-      "access_denied");
+      "ACCESS_DENIED", "Address access is denied");
     testError(new JsonObject().put("type", "register").put("address", "allow2").put("body", "blah"),
-      "access_denied");
+      "ACCESS_DENIED", "Address access is denied");
   }
 
   @Test
@@ -1044,7 +1044,7 @@ public class EventbusBridgeTest extends WebTestBase {
     router.route("/eventbus/*").subRouter(
       sockJS.bridge(defaultOptions));
     testError(new JsonObject().put("type", "register").put("address", addr),
-      "access_denied");
+      "ACCESS_DENIED", "Address access is denied");
   }
 
   @Test
@@ -1052,7 +1052,7 @@ public class EventbusBridgeTest extends WebTestBase {
     router.route("/eventbus/*").subRouter(
       sockJS.bridge(defaultOptions));
     testError(new JsonObject().put("type", "unregister").put("address", addr),
-      "access_denied");
+      "ACCESS_DENIED", "Address access is denied");
   }
 
   @Test
@@ -1092,11 +1092,13 @@ public class EventbusBridgeTest extends WebTestBase {
       });
 
       client.errorHandler(received -> {
-        Object rec = received.getValue("body");
+        Object rec = received.getValue("failureType");
         int c = cnt.getAndIncrement();
         if (c == 0) {
           assertEquals("err", received.getString("type"));
-          assertEquals("max_handlers_reached", rec);
+          assertEquals(-1, received.getInteger("failureCode").intValue());
+          assertEquals("HANDLERS_MAX_LIMIT", rec);
+          assertEquals("Registration handlers exceed the maximum limit", received.getString("message"));
         } else if (c >= maxHandlers + 1) {
           fail("Called too many times");
         }
@@ -1124,7 +1126,9 @@ public class EventbusBridgeTest extends WebTestBase {
 
       client.errorHandler(received -> {
         assertEquals("err", received.getString("type"));
-        assertEquals("max_address_length_reached", received.getString("body"));
+        assertEquals(-1, received.getInteger("failureCode").intValue());
+        assertEquals("ADDRESS_MAX_LENGTH", received.getString("failureType"));
+        assertEquals("Address exceeds maximum length", received.getString("message"));
         client.close().onComplete(onSuccess(v2 -> latch.countDown()));
       });
 
@@ -1138,7 +1142,7 @@ public class EventbusBridgeTest extends WebTestBase {
   public void testSendRequiresAuthorityNotLoggedIn() throws Exception {
     router.route("/eventbus/*").subRouter(
       sockJS.bridge(defaultOptions.addInboundPermitted(new PermittedOptions().setAddress(addr).setRequiredAuthority("admin"))));
-    testError(new JsonObject().put("type", "send").put("address", addr).put("body", "foo"), "not_logged_in");
+    testError(new JsonObject().put("type", "send").put("address", addr).put("body", "foo"), "AUTHN", "Authentication is required");
   }
 
   @Test
@@ -1164,7 +1168,7 @@ public class EventbusBridgeTest extends WebTestBase {
     router.route("/eventbus/*")
       .handler(addLoginHandler(authProvider))
       .subRouter(sockJS);
-    testError(new JsonObject().put("type", "send").put("address", addr).put("body", "foo"), "access_denied");
+    testError(new JsonObject().put("type", "send").put("address", addr).put("body", "foo"), "ACCESS_DENIED", "Address access is denied");
   }
 
   private AuthenticationHandler addLoginHandler(AuthenticationProvider authProvider) {
@@ -1183,7 +1187,7 @@ public class EventbusBridgeTest extends WebTestBase {
     router.route("/eventbus/*").subRouter(
       sockJS.bridge(allAccessOptions));
     testError(new JsonObject().put("type", "send").put("address", addr).put("body", "foo")
-      .put("replyAddress", "thishasmorethan36characters__________"), "invalid_reply_address");
+      .put("replyAddress", "thishasmorethan36characters__________"), "INVALID_REPLY_ADDRESS", "Reply address is invalid");
   }
 
   @Test
@@ -1254,17 +1258,19 @@ public class EventbusBridgeTest extends WebTestBase {
     assertEquals(match, options.getMatch());
   }
 
-  private void testError(JsonObject msg, String expectedErr) throws Exception {
-    testError(msg.encode(), expectedErr);
+  private void testError(JsonObject msg, String expectedType, String expectedMessage) throws Exception {
+    testError(msg.encode(), expectedType, expectedMessage);
   }
 
-  private void testError(String msg, String expectedErr) throws Exception {
+  private void testError(String msg, String expectedType, String expectedMessage) throws Exception {
 
     CountDownLatch latch = new CountDownLatch(1);
 
     BridgeClient client = new BridgeClient(super.wsClient, transport);
     client.errorHandler(received -> {
-      assertEquals(expectedErr, received.getString("body"));
+      assertEquals(-1, received.getInteger("failureCode").intValue());
+      assertEquals(expectedType, received.getString("failureType"));
+      assertEquals(expectedMessage, received.getString("message"));
       latch.countDown();
     });
     client.connect(websocketURI)

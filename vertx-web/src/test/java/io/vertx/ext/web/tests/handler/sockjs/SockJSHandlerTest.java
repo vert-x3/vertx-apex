@@ -493,7 +493,9 @@ public class SockJSHandlerTest extends WebTestBase {
         if (!frame.isClose()) {
           JsonObject msg = new JsonObject(frame.binaryData());
           assertEquals("err", msg.getString("type"));
-          assertEquals("invalid_json", msg.getString("body"));
+          assertEquals(-1, msg.getInteger("failureCode").intValue());
+          assertEquals("INVALID_JSON", msg.getString("failureType"));
+          assertEquals("Malformed JSON", msg.getString("message"));
           testComplete();
           ws.close();
         }
