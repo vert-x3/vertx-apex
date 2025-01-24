@@ -297,6 +297,12 @@ public class RouterImpl implements Router {
     return this;
   }
 
+  @Override
+  public synchronized Router uncaughtErrorHandler(Handler<RoutingContext> errorHandler) {
+    state = state.setUncaughtErrorHandler(errorHandler);
+    return this;
+  }
+
   synchronized void add(RouteImpl route) {
     state = state.addRoute(route);
     // notify the listeners as the routes are changed

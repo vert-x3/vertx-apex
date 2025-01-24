@@ -373,6 +373,18 @@ public interface Router extends Handler<HttpServerRequest> {
   Router errorHandler(int statusCode, Handler<RoutingContext> errorHandler);
 
   /**
+   * Specify an handler to handle an error for any status code that doesn't have a specific handler assigned.
+   * The handler will be called when the context fails and other failure handlers didn't write the reply or when an exception is thrown inside an handler.
+   * You <b>must not</b> use {@link RoutingContext#next()} inside the error handler
+   * This does not affect the normal failure routing logic.
+   *
+   * @param errorHandler error handler. Note: You <b>must not</b> use {@link RoutingContext#next()} inside the provided handler
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  Router uncaughtErrorHandler(Handler<RoutingContext> errorHandler);
+
+  /**
    * Used to route a context to the router. Used for sub-routers. You wouldn't normally call this method directly.
    *
    * @param context  the routing context
