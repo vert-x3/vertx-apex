@@ -629,7 +629,20 @@ public interface RoutingContext {
   }
 
   /**
-   * Returns a map of named parameters as defined in path declaration with their actual values
+   * Add a new one or replace an existing path parameter
+   * @throws NullPointerException when the name or value is null
+   */
+  void addOrReplacePathParam(String name, String value);
+
+  /**
+   * Remove a path parameter.
+   *
+   * @return {@code true} when removed, {@code false} otherwise
+   */
+  boolean removePathParam(String s);
+
+  /**
+   * Returns an unmodifiable map of named parameters as defined in path declaration with their actual values
    *
    * @return the map of named parameters
    */

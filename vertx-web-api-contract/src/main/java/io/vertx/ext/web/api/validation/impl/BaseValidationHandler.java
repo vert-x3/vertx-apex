@@ -101,12 +101,13 @@ public abstract class BaseValidationHandler implements ValidationHandler {
   private Map<String, RequestParameter> validatePathParams(RoutingContext routingContext) throws ValidationException {
     // Validation process validate only params that are registered in the validation -> extra params are allowed
     Map<String, RequestParameter> parsedParams = new HashMap<>();
-    Map<String, String> pathParams = routingContext.pathParams();
+
     for (ParameterValidationRule rule : pathParamsRules.values()) {
       String name = rule.getName();
-      if (pathParams.containsKey(name)) {
-        if (pathParams.get(name) != null || !rule.isOptional() ) {
-            RequestParameter parsedParam = rule.validateSingleParam(pathParams.get(name));
+      if (name != null) {
+        String pathParam = routingContext.pathParam(name);
+        if (pathParam != null || !rule.isOptional() ) {
+            RequestParameter parsedParam = rule.validateSingleParam(pathParam);
             if (parsedParams.containsKey(parsedParam.getName()))
               parsedParam = parsedParam.merge(parsedParams.get(parsedParam.getName()));
             parsedParams.put(parsedParam.getName(), parsedParam);

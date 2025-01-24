@@ -876,8 +876,7 @@ public class RouterTest extends WebTestBase {
   @Test
   public void testPathParamsAreFulfilled() throws Exception {
     router.route("/blah/:abc/quux/:def/eep/:ghi").handler(rc -> {
-      Map<String, String> params = rc.pathParams();
-      rc.response().setStatusMessage(params.get("abc") + params.get("def") + params.get("ghi")).end();
+      rc.response().setStatusMessage(rc.pathParam("abc") + rc.pathParam("def") + rc.pathParam("ghi")).end();
     });
     testPattern("/blah/tim/quux/julien/eep/nick", "timjuliennick");
   }
@@ -890,11 +889,10 @@ public class RouterTest extends WebTestBase {
     final String queryParamValue2 = "queryParamValue2";
     final String sep = ",";
     router.route("/blah/:" + paramName + "/test").handler(rc -> {
-      Map<String, String> params = rc.pathParams();
       MultiMap queryParams = rc.request().params();
       List<String> values = queryParams.getAll(paramName);
       String qValue = values.stream().collect(Collectors.joining(sep));
-      rc.response().setStatusMessage(params.get(paramName) + "|" + qValue).end();
+      rc.response().setStatusMessage(rc.pathParam(paramName) + "|" + qValue).end();
     });
     testRequest(HttpMethod.GET,
       "/blah/" + pathParamValue + "/test?" + paramName + "=" + queryParamValue1 + "&" + paramName + "=" + queryParamValue2,

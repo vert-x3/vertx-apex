@@ -33,6 +33,7 @@ import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiConsumer;
 
 /**
  * @author <a href="http://tfox.org">Tim Fox</a>
@@ -311,6 +312,16 @@ public class RoutingContextWrapper extends RoutingContextImplBase {
   @Override
   public void reroute(HttpMethod method, String path) {
     inner.reroute(method, path);
+  }
+
+  @Override
+  public void addOrReplacePathParam(final String name, final String value) {
+    inner.addOrReplacePathParam(name, value);
+  }
+
+  @Override
+  public boolean removePathParam(final String s) {
+    return inner.removePathParam(s);
   }
 
   @Override

@@ -260,6 +260,16 @@ public class RoutingContextDecorator implements RoutingContextInternal {
   }
 
   @Override
+  public void addOrReplacePathParam(String name, String value) {
+    decoratedContext.addOrReplacePathParam(name, value);
+  }
+
+  @Override
+  public boolean removePathParam(String s) {
+    return decoratedContext.removePathParam(s);
+  }
+
+  @Override
   public Map<String, String> pathParams() {
     return decoratedContext.pathParams();
   }

@@ -33,6 +33,7 @@ import io.vertx.ext.web.handler.impl.UserHolder;
 import java.nio.charset.Charset;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
 import static io.vertx.ext.web.handler.impl.SessionHandlerImpl.SESSION_USER_HOLDER_KEY;
@@ -444,13 +445,40 @@ public class RoutingContextImpl extends RoutingContextImplBase {
   }
 
   @Override
+  public void addOrReplacePathParam(final String name, final String value) {
+    Objects.requireNonNull(name, "name");
+    Objects.requireNonNull(value, "value");
+    getOrCreatePathParams().put(name, value);
+  }
+
+  @Override
   public Map<String, String> pathParams() {
-    return getPathParams();
+    if (pathParams == null || pathParams.isEmpty()) {
+      return Collections.emptyMap();
+    }
+    return Collections.unmodifiableMap(pathParams);
+  }
+
+  @Override
+  public boolean removePathParam(String s) {
+    if (s == null) {
+      return false;
+    }
+    if (pathParams != null) {
+      return pathParams.remove(s) != null;
+    }
+    return false;
   }
 
   @Override
   public @Nullable String pathParam(String name) {
-    return getPathParams().get(name);
+    if (name == null) {
+      return null;
+    }
+    if (pathParams != null) {
+      return pathParams.get(name);
+    }
+    return null;
   }
 
   @Override
@@ -494,9 +522,10 @@ public class RoutingContextImpl extends RoutingContextImplBase {
     return queryParams;
   }
 
-  private Map<String, String> getPathParams() {
+  private Map<String, String> getOrCreatePathParams() {
     if (pathParams == null) {
-      pathParams = new HashMap<>();
+      // let's start small
+      pathParams = new HashMap<>(1);
     }
     return pathParams;
   }
