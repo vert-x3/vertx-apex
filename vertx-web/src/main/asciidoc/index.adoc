@@ -248,7 +248,7 @@ A route can be set-up to match the path from the request URI. In this case it wi
 that's the same as the specified path.
 
 In the following example the handler will be called for a request `/some/path/`. We also ignore trailing slashes
-so it will be called for paths `/some/path` and `/some/path//` too:
+so it will be called for paths `/some/path/` and `/some/path//` too but not for `/some/path`:
 
 [source,$lang]
 ----
