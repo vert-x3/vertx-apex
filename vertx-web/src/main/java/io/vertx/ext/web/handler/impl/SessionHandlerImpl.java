@@ -45,6 +45,7 @@ public class SessionHandlerImpl implements SessionHandler {
   private final SessionStore sessionStore;
 
   private String sessionCookieName = DEFAULT_SESSION_COOKIE_NAME;
+  private String sessionCookieDomain = DEFAULT_SESSION_COOKIE_DOMAIN;
   private String sessionCookiePath = DEFAULT_SESSION_COOKIE_PATH;
   private long sessionTimeout = DEFAULT_SESSION_TIMEOUT;
   private boolean nagHttps = DEFAULT_NAG_HTTPS;
@@ -82,6 +83,12 @@ public class SessionHandlerImpl implements SessionHandler {
   @Override
   public SessionHandler setCookieHttpOnlyFlag(boolean httpOnly) {
     this.sessionCookieHttpOnly = httpOnly;
+    return this;
+  }
+
+  @Override
+  public SessionHandler setSessionCookieDomain(String sessionCookieDomain) {
+    this.sessionCookieDomain = sessionCookieDomain;
     return this;
   }
 
@@ -139,6 +146,9 @@ public class SessionHandlerImpl implements SessionHandler {
    * @param cookie the cookie to set
    */
   private void setCookieProperties(Cookie cookie, boolean expired) {
+    if (sessionCookieDomain != null) {
+      cookie.setDomain(sessionCookieDomain);
+    }
     cookie.setPath(sessionCookiePath);
     cookie.setSecure(sessionCookieSecure);
     cookie.setHttpOnly(sessionCookieHttpOnly);
