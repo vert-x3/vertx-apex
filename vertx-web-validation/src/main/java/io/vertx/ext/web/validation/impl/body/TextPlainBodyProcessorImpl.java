@@ -2,18 +2,23 @@ package io.vertx.ext.web.validation.impl.body;
 
 import io.vertx.core.Future;
 import io.vertx.core.http.HttpHeaders;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.validation.BodyProcessorException;
 import io.vertx.ext.web.validation.MalformedValueException;
 import io.vertx.ext.web.validation.RequestParameter;
-import io.vertx.ext.web.validation.impl.validator.ValueValidator;
+import io.vertx.json.schema.JsonSchema;
+import io.vertx.json.schema.OutputUnit;
+import io.vertx.json.schema.SchemaRepository;
 
 public class TextPlainBodyProcessorImpl implements BodyProcessor {
 
-  ValueValidator valueValidator;
+  private final SchemaRepository repo;
+  private final JsonObject schema;
 
-  public TextPlainBodyProcessorImpl(ValueValidator valueValidator) {
-    this.valueValidator = valueValidator;
+  public TextPlainBodyProcessorImpl(SchemaRepository repo, JsonObject schema) {
+    this.repo = repo;
+    this.schema = schema;
   }
 
   @Override
@@ -30,6 +35,13 @@ public class TextPlainBodyProcessorImpl implements BodyProcessor {
         new MalformedValueException("Null body")
       );
     }
-    return valueValidator.validate(body);
+    return Future.<RequestParameter>future(p -> {
+      OutputUnit result = repo.validator(JsonSchema.of(schema)).validate(body);
+      if (result.getValid()) {
+        p.complete(RequestParameter.create(body));
+      } else {
+        p.fail(result.toException(""));
+      }
+    });
   }
 }

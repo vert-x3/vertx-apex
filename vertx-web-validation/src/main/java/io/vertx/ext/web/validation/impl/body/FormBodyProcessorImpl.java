@@ -11,7 +11,9 @@ import io.vertx.ext.web.validation.MalformedValueException;
 import io.vertx.ext.web.validation.RequestParameter;
 import io.vertx.ext.web.validation.impl.parser.ObjectParser;
 import io.vertx.ext.web.validation.impl.parser.ValueParser;
-import io.vertx.ext.web.validation.impl.validator.ValueValidator;
+import io.vertx.json.schema.JsonSchema;
+import io.vertx.json.schema.OutputUnit;
+import io.vertx.json.schema.SchemaRepository;
 
 import java.util.List;
 import java.util.Map;
@@ -20,12 +22,16 @@ import java.util.regex.Pattern;
 public class FormBodyProcessorImpl extends ObjectParser<List<String>> implements BodyProcessor {
 
   private final String contentType;
-  private final ValueValidator valueValidator;
+  private final SchemaRepository repo;
+  private final JsonObject schema;
 
-  public FormBodyProcessorImpl(Map<String, ValueParser<List<String>>> propertiesParsers, Map<Pattern, ValueParser<List<String>>> patternPropertiesParsers, ValueParser<List<String>> additionalPropertiesParsers, String contentType, ValueValidator valueValidator) {
+  public FormBodyProcessorImpl(Map<String, ValueParser<List<String>>> propertiesParsers, Map<Pattern,
+    ValueParser<List<String>>> patternPropertiesParsers, ValueParser<List<String>> additionalPropertiesParsers,
+                               String contentType, SchemaRepository repo, JsonObject schema) {
     super(propertiesParsers, patternPropertiesParsers, additionalPropertiesParsers);
     this.contentType = contentType;
-    this.valueValidator = valueValidator;
+    this.repo = repo;
+    this.schema = schema;
   }
 
   @Override
@@ -43,7 +49,14 @@ public class FormBodyProcessorImpl extends ObjectParser<List<String>> implements
         Map.Entry<String, Object> parsed = parseField(key, serialized);
         if (parsed != null) object.put(parsed.getKey(), parsed.getValue());
       }
-      return valueValidator.validate(object).recover(err -> Future.failedFuture(
+      return Future.<RequestParameter>future(p -> {
+        OutputUnit result = repo.validator(JsonSchema.of(schema)).validate(object);
+        if (result.getValid()) {
+          p.complete(RequestParameter.create(object));
+        } else {
+          p.fail(result.toException(""));
+        }
+      }).recover(err -> Future.failedFuture(
         BodyProcessorException.createValidationError(requestContext.parsedHeaders().contentType().value(), err)
       ));
     } catch (MalformedValueException e) {

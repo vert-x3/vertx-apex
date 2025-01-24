@@ -4,6 +4,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.multipart.MultipartForm;
+import io.vertx.ext.web.validation.builder.ValidationHandlerBuilder;
 import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -23,14 +24,13 @@ import static io.vertx.ext.web.validation.testutils.ValidationTestUtils.failureP
  */
 @SuppressWarnings("unchecked")
 @ExtendWith(VertxExtension.class)
-public class ValidationHandlerPredicatesIntegrationTest extends BaseValidationHandlerTest{
+public class ValidationHandlerPredicatesIntegrationTest extends BaseValidationHandlerTest {
 
   @Test
   public void testRequiredBodyPredicate(VertxTestContext testContext, @TempDir Path tempDir) {
     Checkpoint checkpoint = testContext.checkpoint(3);
 
-    ValidationHandler validationHandler = ValidationHandler
-      .builder(parser)
+    ValidationHandler validationHandler = ValidationHandlerBuilder.create(schemaRepo)
       .predicate(RequestPredicate.BODY_REQUIRED)
       .build();
 
@@ -61,8 +61,7 @@ public class ValidationHandlerPredicatesIntegrationTest extends BaseValidationHa
   public void testFileUploadExists(VertxTestContext testContext, @TempDir Path tempDir) {
     Checkpoint checkpoint = testContext.checkpoint(4);
 
-    ValidationHandler validationHandler = ValidationHandler
-      .builder(parser)
+    ValidationHandler validationHandler = ValidationHandlerBuilder.create(schemaRepo)
       .predicate(RequestPredicate.multipartFileUploadExists(
         "myfile",
         Pattern.quote("text/plain")
@@ -93,7 +92,8 @@ public class ValidationHandlerPredicatesIntegrationTest extends BaseValidationHa
 
     testRequest(client, HttpMethod.POST, "/testFileUpload")
       .expect(statusCode(200))
-      .sendMultipartForm(MultipartForm.create().textFileUpload("myfile", "myfile.txt", "src/test/resources/myfile.txt", "text/plain"), testContext, checkpoint);
+      .sendMultipartForm(MultipartForm.create().textFileUpload("myfile", "myfile.txt", "src/test/resources/myfile" +
+        ".txt", "text/plain"), testContext, checkpoint);
   }
 
 }

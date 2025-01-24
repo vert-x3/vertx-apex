@@ -4,15 +4,24 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.docgen.Source;
 import io.vertx.ext.web.Router;
-import io.vertx.ext.web.validation.*;
+import io.vertx.ext.web.validation.BadRequestException;
+import io.vertx.ext.web.validation.BodyProcessorException;
+import io.vertx.ext.web.validation.ParameterProcessorException;
+import io.vertx.ext.web.validation.RequestParameters;
+import io.vertx.ext.web.validation.RequestPredicate;
+import io.vertx.ext.web.validation.RequestPredicateException;
+import io.vertx.ext.web.validation.ValidationHandler;
 import io.vertx.ext.web.validation.builder.Bodies;
 import io.vertx.ext.web.validation.builder.Parameters;
 import io.vertx.ext.web.validation.builder.ValidationHandlerBuilder;
-import io.vertx.json.schema.SchemaParser;
+import io.vertx.json.schema.SchemaRepository;
 import io.vertx.json.schema.common.dsl.ObjectSchemaBuilder;
 
 import static io.vertx.ext.web.validation.builder.Parameters.param;
-import static io.vertx.json.schema.common.dsl.Schemas.*;
+import static io.vertx.json.schema.common.dsl.Schemas.arraySchema;
+import static io.vertx.json.schema.common.dsl.Schemas.intSchema;
+import static io.vertx.json.schema.common.dsl.Schemas.objectSchema;
+import static io.vertx.json.schema.common.dsl.Schemas.stringSchema;
 import static io.vertx.json.schema.draft7.dsl.Keywords.maximum;
 
 @Source
@@ -47,12 +56,12 @@ public class WebValidationExamples {
       });
   }
 
-  public void withWebValidation(Router router, SchemaParser schemaParser) {
+  public void withWebValidation(Router router, SchemaRepository schemaRepository) {
     router
       .get("/user")
       .handler(
         ValidationHandlerBuilder
-          .create(schemaParser)
+          .create(schemaRepository)
           .queryParameter(param(
             "aParam",
             intSchema().with(maximum(100))
@@ -60,33 +69,34 @@ public class WebValidationExamples {
           .build()
       )
       .handler(routingContext -> {
-        RequestParameters parameters = routingContext.get(ValidationHandler.REQUEST_CONTEXT_KEY);
+        RequestParameters parameters =
+          routingContext.get(ValidationHandler.REQUEST_CONTEXT_KEY);
         int aParam = parameters.queryParameter("aParam").getInteger();
         // Business logic to process the request
       });
 
   }
 
-  public void parameters(SchemaParser schemaParser) {
+  public void parameters(SchemaRepository schemaRepository) {
     ValidationHandlerBuilder
-      .create(schemaParser)
+      .create(schemaRepository)
       .pathParameter(Parameters.param("myPathParam", stringSchema()))
       .queryParameter(Parameters.optionalParam("myQueryParam", intSchema()));
   }
 
-  public void bodies(SchemaParser schemaParser) {
+  public void bodies(SchemaRepository schemaRepository) {
     ObjectSchemaBuilder bodySchemaBuilder = objectSchema()
       .property("username", stringSchema())
       .property("password", stringSchema());
     ValidationHandlerBuilder
-      .create(schemaParser)
+      .create(schemaRepository)
       .body(Bodies.json(bodySchemaBuilder))
       .body(Bodies.formUrlEncoded(bodySchemaBuilder));
   }
 
-  public void parametersComplex(SchemaParser schemaParser) {
+  public void parametersComplex(SchemaRepository schemaRepository) {
     ValidationHandlerBuilder
-      .create(schemaParser)
+      .create(schemaRepository)
       .queryParameter(Parameters.explodedParam(
         "myArray",
         arraySchema().items(stringSchema())
@@ -98,29 +108,30 @@ public class WebValidationExamples {
       )); // Accepts myDeepObject[name]=francesco
   }
 
-  public void requestBodyRequired(SchemaParser schemaParser) {
+  public void requestBodyRequired(SchemaRepository schemaRepository) {
     ValidationHandlerBuilder
-      .create(schemaParser)
+      .create(schemaRepository)
       .predicate(RequestPredicate.BODY_REQUIRED);
   }
 
 
-  public void buildAndMount(Router router, SchemaParser schemaParser) {
+  public void buildAndMount(Router router, SchemaRepository schemaRepository) {
     router
       .get("/user")
       .handler(
         ValidationHandlerBuilder
-          .create(schemaParser)
+          .create(schemaRepository)
           .build()
       );
   }
 
-  public void useParameters(Router router, SchemaParser schemaParser, ObjectSchemaBuilder objectBodySchemaBuilder) {
+  public void useParameters(Router router, SchemaRepository schemaRepository,
+                            ObjectSchemaBuilder objectBodySchemaBuilder) {
     router
       .get("/user")
       .handler(
         ValidationHandlerBuilder
-          .create(schemaParser)
+          .create(schemaRepository)
           .queryParameter(Parameters.explodedParam(
             "myArray",
             arraySchema().items(stringSchema())
@@ -129,7 +140,8 @@ public class WebValidationExamples {
           .body(Bodies.formUrlEncoded(objectBodySchemaBuilder))
           .build()
       ).handler(routingContext -> {
-        RequestParameters parameters = routingContext.get(ValidationHandler.REQUEST_CONTEXT_KEY);
+        RequestParameters parameters =
+          routingContext.get(ValidationHandler.REQUEST_CONTEXT_KEY);
         JsonArray myArray = parameters.queryParameter("myArray").getJsonArray();
         JsonObject body = parameters.body().getJsonObject();
       });
@@ -146,7 +158,7 @@ public class WebValidationExamples {
           // A request predicate is unsatisfied
         }
       }
-     });
+    });
   }
 
 }

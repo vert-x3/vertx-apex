@@ -5,19 +5,24 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.impl.Utils;
 import io.vertx.ext.web.validation.BodyProcessorException;
 import io.vertx.ext.web.validation.MalformedValueException;
 import io.vertx.ext.web.validation.RequestParameter;
-import io.vertx.ext.web.validation.impl.validator.ValueValidator;
+import io.vertx.json.schema.JsonSchema;
+import io.vertx.json.schema.OutputUnit;
+import io.vertx.json.schema.SchemaRepository;
 
 public class JsonBodyProcessorImpl implements BodyProcessor {
 
-  private ValueValidator valueValidator;
+  private final SchemaRepository repo;
+  private final JsonSchema schema;
 
-  public JsonBodyProcessorImpl(ValueValidator valueValidator) {
-    this.valueValidator = valueValidator;
+  public JsonBodyProcessorImpl(SchemaRepository repo, JsonObject schema) {
+    this.schema = JsonSchema.of(schema);
+    this.repo = repo.dereference(this.schema);
   }
 
   @Override
@@ -36,7 +41,14 @@ public class JsonBodyProcessorImpl implements BodyProcessor {
         );
       }
       Object json = Json.decodeValue(body);
-      return valueValidator.validate(json).recover(err -> Future.failedFuture(
+      return Future.<RequestParameter>future(p -> {
+        OutputUnit result = repo.validator(schema).validate(json);
+        if (result.getValid()) {
+          p.complete(RequestParameter.create(json));
+        } else {
+          p.fail(result.toException(""));
+        }
+      }).recover(err -> Future.failedFuture(
         BodyProcessorException.createValidationError(requestContext.request().getHeader(HttpHeaders.CONTENT_TYPE), err)
       ));
     } catch (DecodeException e) {

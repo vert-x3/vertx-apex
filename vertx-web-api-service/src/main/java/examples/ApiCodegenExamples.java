@@ -15,7 +15,7 @@ import io.vertx.ext.web.api.service.ServiceResponse;
 import io.vertx.ext.web.handler.HttpException;
 import io.vertx.ext.web.validation.ValidationHandler;
 import io.vertx.ext.web.validation.builder.ValidationHandlerBuilder;
-import io.vertx.json.schema.SchemaParser;
+import io.vertx.json.schema.SchemaRepository;
 import io.vertx.serviceproxy.ServiceBinder;
 
 import static io.vertx.ext.web.validation.builder.Bodies.json;
@@ -29,7 +29,8 @@ import static io.vertx.json.schema.common.dsl.Schemas.stringSchema;
 @Source
 public class ApiCodegenExamples {
 
-  public void mountHandler(EventBus eventBus, Router router, ValidationHandler validationHandler) {
+  public void mountHandler(EventBus eventBus, Router router,
+                           ValidationHandler validationHandler) {
     router
       .get("/hello")
       .handler(validationHandler)
@@ -39,33 +40,38 @@ public class ApiCodegenExamples {
       );
   }
 
-  public void mountHandlerWithTimeout(EventBus eventBus, Router router, ValidationHandler validationHandler) {
+  public void mountHandlerWithTimeout(EventBus eventBus, Router router,
+                                      ValidationHandler validationHandler) {
     router
       .get("/hello")
       .handler(validationHandler)
       .handler(
         RouteToEBServiceHandler
-          .build(eventBus, "greeters.myapplication", "hello", new DeliveryOptions().setSendTimeout(1000))
+          .build(eventBus, "greeters.myapplication", "hello",
+            new DeliveryOptions().setSendTimeout(1000))
       );
   }
 
-  public void serviceMountExample(EventBus eventBus, Router router, SchemaParser schemaParser) {
+  public void serviceMountExample(EventBus eventBus, Router router,
+                                  SchemaRepository repository) {
     router.get("/api/transactions")
       .handler(
-        ValidationHandlerBuilder.create(schemaParser)
+        ValidationHandlerBuilder.create(repository)
           .queryParameter(optionalParam("from", stringSchema()))
           .queryParameter(optionalParam("to", stringSchema()))
           .build()
       ).handler(
-        RouteToEBServiceHandler.build(eventBus, "transactions.myapplication", "getTransactionsList")
+        RouteToEBServiceHandler.build(eventBus, "transactions.myapplication",
+          "getTransactionsList")
       );
     router.post("/api/transactions")
       .handler(
-        ValidationHandlerBuilder.create(schemaParser)
+        ValidationHandlerBuilder.create(repository)
           .body(json(objectSchema()))
           .build()
       ).handler(
-        RouteToEBServiceHandler.build(eventBus, "transactions.myapplication", "putTransaction")
+        RouteToEBServiceHandler.build(eventBus, "transactions.myapplication",
+          "putTransaction")
       );
   }
 
@@ -80,7 +86,9 @@ public class ApiCodegenExamples {
       .register(TransactionService.class, transactionService);
   }
 
-  public void implGetTransactionsListSuccess(String from, String to, ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler) {
+  public void implGetTransactionsListSuccess(String from, String to,
+                                             ServiceRequest context,
+                                             Handler<AsyncResult<ServiceResponse>> resultHandler) {
     // Your business logic
     resultHandler.handle(
       Future.succeededFuture(
@@ -89,7 +97,9 @@ public class ApiCodegenExamples {
     );
   }
 
-  public void implGetTransactionsListFailure(String from, String to, ServiceRequest context, Handler<AsyncResult<ServiceResponse>> resultHandler) {
+  public void implGetTransactionsListFailure(String from, String to,
+                                             ServiceRequest context,
+                                             Handler<AsyncResult<ServiceResponse>> resultHandler) {
     // Return a failed result
     resultHandler.handle(
       Future.failedFuture(

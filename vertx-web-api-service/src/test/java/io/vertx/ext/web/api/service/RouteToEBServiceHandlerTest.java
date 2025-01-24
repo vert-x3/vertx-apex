@@ -24,8 +24,18 @@ import java.net.URI;
 
 import static io.vertx.ext.web.validation.builder.Bodies.json;
 import static io.vertx.ext.web.validation.builder.Parameters.param;
-import static io.vertx.ext.web.validation.testutils.TestRequest.*;
-import static io.vertx.json.schema.draft7.dsl.Schemas.*;
+import static io.vertx.ext.web.validation.testutils.TestRequest.bodyResponse;
+import static io.vertx.ext.web.validation.testutils.TestRequest.emptyResponse;
+import static io.vertx.ext.web.validation.testutils.TestRequest.jsonBodyResponse;
+import static io.vertx.ext.web.validation.testutils.TestRequest.statusCode;
+import static io.vertx.ext.web.validation.testutils.TestRequest.statusMessage;
+import static io.vertx.ext.web.validation.testutils.TestRequest.testRequest;
+import static io.vertx.json.schema.draft7.dsl.Schemas.anyOf;
+import static io.vertx.json.schema.draft7.dsl.Schemas.arraySchema;
+import static io.vertx.json.schema.draft7.dsl.Schemas.intSchema;
+import static io.vertx.json.schema.draft7.dsl.Schemas.objectSchema;
+import static io.vertx.json.schema.draft7.dsl.Schemas.ref;
+import static io.vertx.json.schema.draft7.dsl.Schemas.stringSchema;
 
 /**
  * @author Francesco Guardiani @slinkydeveloper
@@ -52,7 +62,7 @@ public class RouteToEBServiceHandlerTest extends BaseValidationHandlerTest {
       .post("/testE/:id")
       .handler(BodyHandler.create())
       .handler(
-        ValidationHandler.builder(parser)
+        ValidationHandler.builder(schemaRepo)
           .pathParameter(param("id", intSchema()))
           .body(json(objectSchema().property("value", intSchema())))
           .build()
@@ -64,7 +74,7 @@ public class RouteToEBServiceHandlerTest extends BaseValidationHandlerTest {
       .post("/testF/:id")
       .handler(BodyHandler.create())
       .handler(
-        ValidationHandler.builder(parser)
+        ValidationHandler.builder(schemaRepo)
           .pathParameter(param("id", intSchema()))
           .body(json(
             anyOf(
@@ -106,7 +116,7 @@ public class RouteToEBServiceHandlerTest extends BaseValidationHandlerTest {
       .post("/test")
       .handler(BodyHandler.create())
       .handler(
-        ValidationHandler.builder(parser)
+        ValidationHandler.builder(schemaRepo)
           .body(json(ref(JsonPointer.fromURI(URI.create("filter.json")))))
           .build()
       ).handler(
@@ -135,7 +145,7 @@ public class RouteToEBServiceHandlerTest extends BaseValidationHandlerTest {
     router
       .get("/test")
       .handler(
-        ValidationHandler.builder(parser).build()
+        ValidationHandler.builder(schemaRepo).build()
       ).handler(
         RouteToEBServiceHandler.build(vertx.eventBus(), "someAddress", "testEmptyServiceResponse")
       );
@@ -157,7 +167,7 @@ public class RouteToEBServiceHandlerTest extends BaseValidationHandlerTest {
     router
       .get("/test")
       .handler(
-        ValidationHandler.builder(parser).build()
+        ValidationHandler.builder(schemaRepo).build()
       ).handler(rc -> {
         rc.setUser(User.fromName("slinkydeveloper")); // Put user mock into context
         rc.next();
@@ -183,7 +193,7 @@ public class RouteToEBServiceHandlerTest extends BaseValidationHandlerTest {
     router
       .get("/test")
       .handler(
-        ValidationHandler.builder(parser).build()
+        ValidationHandler.builder(schemaRepo).build()
       ).handler(
         RouteToEBServiceHandler
           .build(vertx.eventBus(), "someAddress", "extraPayload")
@@ -210,7 +220,7 @@ public class RouteToEBServiceHandlerTest extends BaseValidationHandlerTest {
       .post("/testFailure")
       .handler(BodyHandler.create())
       .handler(
-        ValidationHandler.builder(parser)
+        ValidationHandler.builder(schemaRepo)
           .body(json(
             objectSchema()
               .requiredProperty("hello", stringSchema())
@@ -227,7 +237,7 @@ public class RouteToEBServiceHandlerTest extends BaseValidationHandlerTest {
       .post("/testException")
       .handler(BodyHandler.create())
       .handler(
-        ValidationHandler.builder(parser)
+        ValidationHandler.builder(schemaRepo)
           .body(json(
             objectSchema()
               .requiredProperty("hello", stringSchema())
@@ -262,14 +272,14 @@ public class RouteToEBServiceHandlerTest extends BaseValidationHandlerTest {
       .get("/test")
       .handler(BodyHandler.create())
       .handler(
-        ValidationHandler.builder(parser).build()
+        ValidationHandler.builder(schemaRepo).build()
       ).handler(
         RouteToEBServiceHandler.build(vertx.eventBus(), "someAddress", "binaryTest")
       );
 
     testRequest(client, HttpMethod.GET, "/test")
       .expect(statusCode(200), statusMessage("OK"))
-      .expect(bodyResponse(Buffer.buffer(new byte[] {(byte) 0xb0}), "application/octet-stream"))
+      .expect(bodyResponse(Buffer.buffer(new byte[]{(byte) 0xb0}), "application/octet-stream"))
       .send(testContext, checkpoint);
   }
 
@@ -284,7 +294,7 @@ public class RouteToEBServiceHandlerTest extends BaseValidationHandlerTest {
     router
       .get("/test")
       .handler(
-        ValidationHandler.builder(parser).build()
+        ValidationHandler.builder(schemaRepo).build()
       ).handler(rc -> {
         // patch the request to include authorization header
         rc.request().headers().add(HttpHeaders.AUTHORIZATION, "Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==");

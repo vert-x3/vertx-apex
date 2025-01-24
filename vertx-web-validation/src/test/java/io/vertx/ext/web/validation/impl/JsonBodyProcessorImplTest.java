@@ -12,11 +12,10 @@ import io.vertx.ext.web.validation.MalformedValueException;
 import io.vertx.ext.web.validation.builder.Bodies;
 import io.vertx.ext.web.validation.impl.body.BodyProcessor;
 import io.vertx.ext.web.validation.testutils.TestSchemas;
-import io.vertx.json.schema.SchemaParser;
-import io.vertx.json.schema.SchemaRouter;
-import io.vertx.json.schema.SchemaRouterOptions;
+import io.vertx.json.schema.Draft;
+import io.vertx.json.schema.JsonSchemaOptions;
+import io.vertx.json.schema.SchemaRepository;
 import io.vertx.json.schema.ValidationException;
-import io.vertx.json.schema.draft7.Draft7SchemaParser;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,23 +32,23 @@ import static org.mockito.Mockito.when;
 @ExtendWith(VertxExtension.class)
 @ExtendWith(MockitoExtension.class)
 class JsonBodyProcessorImplTest {
+  private SchemaRepository repository;
 
-  SchemaRouter router;
-  SchemaParser parser;
-
-  @Mock RoutingContext mockedContext;
-  @Mock HttpServerRequest mockerServerRequest;
-  @Mock RequestBody mockerRequestBody;
+  @Mock
+  RoutingContext mockedContext;
+  @Mock
+  HttpServerRequest mockerServerRequest;
+  @Mock
+  RequestBody mockerRequestBody;
 
   @BeforeEach
   public void setUp(Vertx vertx) {
-    router = SchemaRouter.create(vertx, new SchemaRouterOptions());
-    parser = Draft7SchemaParser.create(router);
+    repository = SchemaRepository.create(new JsonSchemaOptions().setDraft(Draft.DRAFT7).setBaseUri("app://"));
   }
 
   @Test
   public void testContentTypeCheck() {
-    BodyProcessor processor = Bodies.json(TestSchemas.SAMPLE_OBJECT_SCHEMA_BUILDER).create(parser);
+    BodyProcessor processor = Bodies.json(TestSchemas.SAMPLE_OBJECT_SCHEMA_BUILDER).create(repository);
     assertThat(processor.canProcess("application/json")).isTrue();
     assertThat(processor.canProcess("application/json; charset=utf-8")).isTrue();
     assertThat(processor.canProcess("application/superapplication+json")).isTrue();
@@ -60,7 +59,7 @@ class JsonBodyProcessorImplTest {
     when(mockedContext.body()).thenReturn(mockerRequestBody);
     when(mockerRequestBody.buffer()).thenReturn(TestSchemas.VALID_OBJECT.toBuffer());
 
-    BodyProcessor processor = Bodies.json(TestSchemas.SAMPLE_OBJECT_SCHEMA_BUILDER).create(parser);
+    BodyProcessor processor = Bodies.json(TestSchemas.SAMPLE_OBJECT_SCHEMA_BUILDER).create(repository);
 
     processor.process(mockedContext).onComplete(testContext.succeeding(rp -> {
       testContext.verify(() -> {
@@ -81,7 +80,7 @@ class JsonBodyProcessorImplTest {
     when(mockedContext.body()).thenReturn(mockerRequestBody);
     when(mockerRequestBody.buffer()).thenReturn(TestSchemas.INVALID_OBJECT.toBuffer());
 
-    BodyProcessor processor = Bodies.json(TestSchemas.SAMPLE_OBJECT_SCHEMA_BUILDER).create(parser);
+    BodyProcessor processor = Bodies.json(TestSchemas.SAMPLE_OBJECT_SCHEMA_BUILDER).create(repository);
 
     processor.process(mockedContext).onComplete(testContext.failing(err -> {
       testContext.verify(() -> {
@@ -99,7 +98,7 @@ class JsonBodyProcessorImplTest {
     when(mockedContext.body()).thenReturn(mockerRequestBody);
     when(mockerRequestBody.buffer()).thenReturn(TestSchemas.VALID_ARRAY.toBuffer());
 
-    BodyProcessor processor = Bodies.json(TestSchemas.SAMPLE_ARRAY_SCHEMA_BUILDER).create(parser);
+    BodyProcessor processor = Bodies.json(TestSchemas.SAMPLE_ARRAY_SCHEMA_BUILDER).create(repository);
 
     processor.process(mockedContext).onComplete(testContext.succeeding(rp -> {
       testContext.verify(() -> {
@@ -120,7 +119,7 @@ class JsonBodyProcessorImplTest {
     when(mockedContext.body()).thenReturn(mockerRequestBody);
     when(mockerRequestBody.buffer()).thenReturn(TestSchemas.INVALID_ARRAY.toBuffer());
 
-    BodyProcessor processor = Bodies.json(TestSchemas.SAMPLE_ARRAY_SCHEMA_BUILDER).create(parser);
+    BodyProcessor processor = Bodies.json(TestSchemas.SAMPLE_ARRAY_SCHEMA_BUILDER).create(repository);
 
     processor.process(mockedContext).onComplete(testContext.failing(err -> {
       testContext.verify(() -> {
@@ -140,7 +139,7 @@ class JsonBodyProcessorImplTest {
     when(mockedContext.body()).thenReturn(mockerRequestBody);
     when(mockerRequestBody.buffer()).thenReturn(Buffer.buffer("{\"a"));
 
-    BodyProcessor processor = Bodies.json(TestSchemas.SAMPLE_ARRAY_SCHEMA_BUILDER).create(parser);
+    BodyProcessor processor = Bodies.json(TestSchemas.SAMPLE_ARRAY_SCHEMA_BUILDER).create(repository);
 
     assertThatCode(() -> processor.process(mockedContext))
       .isInstanceOf(BodyProcessorException.class)
@@ -153,7 +152,7 @@ class JsonBodyProcessorImplTest {
     when(mockedContext.body()).thenReturn(mockerRequestBody);
     when(mockerRequestBody.buffer()).thenReturn(Buffer.buffer("null"));
 
-    BodyProcessor processor = Bodies.json(schema().withKeyword("type", "null")).create(parser);
+    BodyProcessor processor = Bodies.json(schema().withKeyword("type", "null")).create(repository);
 
     processor.process(mockedContext).onComplete(testContext.succeeding(rp -> {
       testContext.verify(() -> {
@@ -170,7 +169,7 @@ class JsonBodyProcessorImplTest {
     when(mockedContext.body()).thenReturn(mockerRequestBody);
     when(mockerRequestBody.buffer()).thenReturn(null);
 
-    BodyProcessor processor = Bodies.json(schema().withKeyword("type", "null")).create(parser);
+    BodyProcessor processor = Bodies.json(schema().withKeyword("type", "null")).create(repository);
 
     assertThatCode(() -> processor.process(mockedContext))
       .isInstanceOf(BodyProcessorException.class)

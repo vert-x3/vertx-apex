@@ -6,19 +6,27 @@ import io.vertx.ext.web.validation.builder.impl.ValidationDSLUtils;
 import io.vertx.ext.web.validation.impl.parameter.ParameterProcessorImpl;
 import io.vertx.ext.web.validation.impl.parameter.SingleValueParameterParser;
 import io.vertx.ext.web.validation.impl.parser.ValueParser;
-import io.vertx.ext.web.validation.impl.validator.SchemaValidator;
-import io.vertx.json.schema.common.dsl.*;
+import io.vertx.json.schema.common.dsl.ArraySchemaBuilder;
+import io.vertx.json.schema.common.dsl.BooleanSchemaBuilder;
+import io.vertx.json.schema.common.dsl.NumberSchemaBuilder;
+import io.vertx.json.schema.common.dsl.ObjectSchemaBuilder;
+import io.vertx.json.schema.common.dsl.SchemaBuilder;
+import io.vertx.json.schema.common.dsl.StringSchemaBuilder;
+import io.vertx.json.schema.common.dsl.TupleSchemaBuilder;
 
 /**
- * In this interface you can find all available {@link ParameterProcessorFactory} to use in {@link ValidationHandlerBuilder}. <br/>
- *
- * To create new schemas using {@link SchemaBuilder}, look at the <a href="https://vertx.io/docs/vertx-json-schema/java/">docs of vertx-json-schema</a>
+ * In this interface you can find all available {@link ParameterProcessorFactory} to use in
+ * {@link ValidationHandlerBuilder}. <br/>
+ * <p>
+ * To create new schemas using {@link SchemaBuilder}, look at the
+ * <a href="https://vertx.io/docs/vertx-json-schema/java/">docs of vertx-json-schema</a>
  */
 @VertxGen
 public interface Parameters {
 
   /**
-   * Creates a new required number parameter. Depending on the type provided in {@code schemaBuilder}, the parser will parse the number as {@link Long} or {@link Double}
+   * Creates a new required number parameter. Depending on the type provided in {@code schemaBuilder}, the parser
+   * will parse the number as {@link Long} or {@link Double}
    *
    * @param parameterName
    * @param schemaBuilder
@@ -26,7 +34,7 @@ public interface Parameters {
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static ParameterProcessorFactory param(String parameterName, NumberSchemaBuilder schemaBuilder) {
-    return (location, jsonSchemaParser) -> new ParameterProcessorImpl(
+    return (location, schemaRepository) -> new ParameterProcessorImpl(
       parameterName,
       location,
       false,
@@ -34,12 +42,14 @@ public interface Parameters {
         location.lowerCaseIfNeeded(parameterName),
         schemaBuilder.isIntegerSchema() ? ValueParser.LONG_PARSER : ValueParser.DOUBLE_PARSER
       ),
-      new SchemaValidator(schemaBuilder.build(jsonSchemaParser))
+      schemaRepository,
+      schemaBuilder.toJson()
     );
   }
 
   /**
-   * Creates a new optional number parameter. Depending on the type provided in {@code schemaBuilder}, the parser will parse the number as {@link Long} or {@link Double}
+   * Creates a new optional number parameter. Depending on the type provided in {@code schemaBuilder}, the parser
+   * will parse the number as {@link Long} or {@link Double}
    *
    * @param parameterName
    * @param schemaBuilder
@@ -47,7 +57,7 @@ public interface Parameters {
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static ParameterProcessorFactory optionalParam(String parameterName, NumberSchemaBuilder schemaBuilder) {
-    return (location, jsonSchemaParser) -> new ParameterProcessorImpl(
+    return (location, schemaRepository) -> new ParameterProcessorImpl(
       parameterName,
       location,
       true,
@@ -55,7 +65,8 @@ public interface Parameters {
         location.lowerCaseIfNeeded(parameterName),
         schemaBuilder.isIntegerSchema() ? ValueParser.LONG_PARSER : ValueParser.DOUBLE_PARSER
       ),
-      new SchemaValidator(schemaBuilder.build(jsonSchemaParser))
+      schemaRepository,
+      schemaBuilder.toJson()
     );
   }
 
@@ -68,12 +79,13 @@ public interface Parameters {
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static ParameterProcessorFactory param(String parameterName, StringSchemaBuilder schemaBuilder) {
-    return (location, jsonSchemaParser) -> new ParameterProcessorImpl(
+    return (location, schemaRepository) -> new ParameterProcessorImpl(
       parameterName,
       location,
       false,
       new SingleValueParameterParser(location.lowerCaseIfNeeded(parameterName), ValueParser.NOOP_PARSER),
-      new SchemaValidator(schemaBuilder.build(jsonSchemaParser))
+      schemaRepository,
+      schemaBuilder.toJson()
     );
   }
 
@@ -86,12 +98,13 @@ public interface Parameters {
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static ParameterProcessorFactory optionalParam(String parameterName, StringSchemaBuilder schemaBuilder) {
-    return (location, jsonSchemaParser) -> new ParameterProcessorImpl(
+    return (location, schemaRepository) -> new ParameterProcessorImpl(
       parameterName,
       location,
       true,
       new SingleValueParameterParser(location.lowerCaseIfNeeded(parameterName), ValueParser.NOOP_PARSER),
-      new SchemaValidator(schemaBuilder.build(jsonSchemaParser))
+      schemaRepository,
+      schemaBuilder.toJson()
     );
   }
 
@@ -104,12 +117,13 @@ public interface Parameters {
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static ParameterProcessorFactory param(String parameterName, BooleanSchemaBuilder schemaBuilder) {
-    return (location, jsonSchemaParser) -> new ParameterProcessorImpl(
+    return (location, schemaRepository) -> new ParameterProcessorImpl(
       parameterName,
       location,
       false,
       new SingleValueParameterParser(location.lowerCaseIfNeeded(parameterName), ValueParser.BOOLEAN_PARSER),
-      new SchemaValidator(schemaBuilder.build(jsonSchemaParser))
+      schemaRepository,
+      schemaBuilder.toJson()
     );
   }
 
@@ -122,12 +136,13 @@ public interface Parameters {
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static ParameterProcessorFactory optionalParam(String parameterName, BooleanSchemaBuilder schemaBuilder) {
-    return (location, jsonSchemaParser) -> new ParameterProcessorImpl(
+    return (location, schemaRepository) -> new ParameterProcessorImpl(
       parameterName,
       location,
       true,
       new SingleValueParameterParser(location.lowerCaseIfNeeded(parameterName), ValueParser.BOOLEAN_PARSER),
-      new SchemaValidator(schemaBuilder.build(jsonSchemaParser))
+      schemaRepository,
+      schemaBuilder.toJson()
     );
   }
 
@@ -242,13 +257,15 @@ public interface Parameters {
    * @return
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
-  static ParameterProcessorFactory param(String parameterName, SchemaBuilder schemaBuilder, ValueParser<String> valueParser) {
-    return (location, jsonSchemaParser) -> new ParameterProcessorImpl(
+  static ParameterProcessorFactory param(String parameterName, SchemaBuilder schemaBuilder,
+                                         ValueParser<String> valueParser) {
+    return (location, schemaRepository) -> new ParameterProcessorImpl(
       parameterName,
       location,
       false,
       new SingleValueParameterParser(location.lowerCaseIfNeeded(parameterName), valueParser),
-      new SchemaValidator(schemaBuilder.build(jsonSchemaParser))
+      schemaRepository,
+      schemaBuilder.toJson()
     );
   }
 
@@ -261,13 +278,15 @@ public interface Parameters {
    * @return
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
-  static ParameterProcessorFactory optionalParam(String parameterName, SchemaBuilder schemaBuilder, ValueParser<String> valueParser) {
-    return (location, jsonSchemaParser) -> new ParameterProcessorImpl(
+  static ParameterProcessorFactory optionalParam(String parameterName, SchemaBuilder schemaBuilder,
+                                                 ValueParser<String> valueParser) {
+    return (location, schemaRepository) -> new ParameterProcessorImpl(
       parameterName,
       location,
       true,
       new SingleValueParameterParser(location.lowerCaseIfNeeded(parameterName), valueParser),
-      new SchemaValidator(schemaBuilder.build(jsonSchemaParser))
+      schemaRepository,
+      schemaBuilder.toJson()
     );
   }
 
@@ -280,12 +299,13 @@ public interface Parameters {
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static StyledParameterProcessorFactory jsonParam(String parameterName, SchemaBuilder builder) {
-    return (location, parser) -> new ParameterProcessorImpl(
+    return (location, schemaRepository) -> new ParameterProcessorImpl(
       parameterName,
       location,
       false,
       new SingleValueParameterParser(location.lowerCaseIfNeeded(parameterName), ValueParser.JSON_PARSER),
-      new SchemaValidator(builder.build(parser))
+      schemaRepository,
+      builder.toJson()
     );
   }
 
@@ -298,89 +318,107 @@ public interface Parameters {
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
   static StyledParameterProcessorFactory optionalJsonParam(String parameterName, SchemaBuilder builder) {
-    return (location, parser) -> new ParameterProcessorImpl(
+    return (location, schemaRepository) -> new ParameterProcessorImpl(
       parameterName,
       location,
       true,
       new SingleValueParameterParser(location.lowerCaseIfNeeded(parameterName), ValueParser.JSON_PARSER),
-      new SchemaValidator(builder.build(parser))
+      schemaRepository,
+      builder.toJson()
     );
   }
 
   /**
-   * Creates a required array parameter deserializable using the provided parser factory. Look at {@link Parsers} for available parser factories
+   * Creates a required array parameter deserializable using the provided parser factory. Look at {@link Parsers} for
+   * available parser factories
    *
    * @param parameterName
    * @param arrayParserFactory
    * @param schemaBuilder
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
-  static StyledParameterProcessorFactory serializedParam(String parameterName, ArrayParserFactory arrayParserFactory, ArraySchemaBuilder schemaBuilder) {
+  static StyledParameterProcessorFactory serializedParam(String parameterName, ArrayParserFactory arrayParserFactory,
+                                                         ArraySchemaBuilder schemaBuilder) {
     return ValidationDSLUtils.createArrayParamFactory(parameterName, arrayParserFactory, schemaBuilder, false)::apply;
   }
 
   /**
-   * Creates an optional array parameter deserializable using the provided parser factory. Look at {@link Parsers} for available parser factories
+   * Creates an optional array parameter deserializable using the provided parser factory. Look at {@link Parsers}
+   * for available parser factories
    *
    * @param parameterName
    * @param arrayParserFactory
    * @param schemaBuilder
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
-  static StyledParameterProcessorFactory optionalSerializedParam(String parameterName, ArrayParserFactory arrayParserFactory, ArraySchemaBuilder schemaBuilder) {
+  static StyledParameterProcessorFactory optionalSerializedParam(String parameterName,
+                                                                 ArrayParserFactory arrayParserFactory,
+                                                                 ArraySchemaBuilder schemaBuilder) {
     return ValidationDSLUtils.createArrayParamFactory(parameterName, arrayParserFactory, schemaBuilder, true)::apply;
   }
 
   /**
-   * Creates a required tuple parameter deserializable using the provided parser factory. Look at {@link Parsers} for available parser factories
+   * Creates a required tuple parameter deserializable using the provided parser factory. Look at {@link Parsers} for
+   * available parser factories
    *
    * @param parameterName
    * @param tupleParserFactory
    * @param schemaBuilder
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
-  static StyledParameterProcessorFactory serializedParam(String parameterName, TupleParserFactory tupleParserFactory, TupleSchemaBuilder schemaBuilder) {
+  static StyledParameterProcessorFactory serializedParam(String parameterName, TupleParserFactory tupleParserFactory,
+                                                         TupleSchemaBuilder schemaBuilder) {
     return ValidationDSLUtils.createTupleParamFactory(parameterName, tupleParserFactory, schemaBuilder, false)::apply;
   }
 
   /**
-   * Creates an optional tuple parameter deserializable using the provided parser factory. Look at {@link Parsers} for available parser factories
+   * Creates an optional tuple parameter deserializable using the provided parser factory. Look at {@link Parsers}
+   * for available parser factories
    *
    * @param parameterName
    * @param tupleParserFactory
    * @param schemaBuilder
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
-  static StyledParameterProcessorFactory optionalSerializedParam(String parameterName, TupleParserFactory tupleParserFactory, TupleSchemaBuilder schemaBuilder) {
+  static StyledParameterProcessorFactory optionalSerializedParam(String parameterName,
+                                                                 TupleParserFactory tupleParserFactory,
+                                                                 TupleSchemaBuilder schemaBuilder) {
     return ValidationDSLUtils.createTupleParamFactory(parameterName, tupleParserFactory, schemaBuilder, true)::apply;
   }
 
   /**
-   * Creates a required object parameter deserializable using the provided parser factory. Look at {@link Parsers} for available parser factories
+   * Creates a required object parameter deserializable using the provided parser factory. Look at {@link Parsers}
+   * for available parser factories
    *
    * @param parameterName
    * @param objectParserFactory
    * @param schemaBuilder
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
-  static StyledParameterProcessorFactory serializedParam(String parameterName, ObjectParserFactory objectParserFactory, ObjectSchemaBuilder schemaBuilder) {
+  static StyledParameterProcessorFactory serializedParam(String parameterName,
+                                                         ObjectParserFactory objectParserFactory,
+                                                         ObjectSchemaBuilder schemaBuilder) {
     return ValidationDSLUtils.createObjectParamFactory(parameterName, objectParserFactory, schemaBuilder, false)::apply;
   }
 
   /**
-   * Creates an optional object parameter deserializable using the provided parser factory. Look at {@link Parsers} for available parser factories
+   * Creates an optional object parameter deserializable using the provided parser factory. Look at {@link Parsers}
+   * for available parser factories
    *
    * @param parameterName
    * @param objectParserFactory
    * @param schemaBuilder
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
-  static StyledParameterProcessorFactory optionalSerializedParam(String parameterName, ObjectParserFactory objectParserFactory, ObjectSchemaBuilder schemaBuilder) {
+  static StyledParameterProcessorFactory optionalSerializedParam(String parameterName,
+                                                                 ObjectParserFactory objectParserFactory,
+                                                                 ObjectSchemaBuilder schemaBuilder) {
     return ValidationDSLUtils.createObjectParamFactory(parameterName, objectParserFactory, schemaBuilder, true)::apply;
   }
 
   /**
-   * Creates a required exploded array parameter. Exploded parameters looks like {@code parameterName=item1&parameterName=item2}
+   * Creates a required exploded array parameter. Exploded parameters looks like {@code parameterName=item1
+   * &parameterName=item2}
    *
    * @param parameterName
    * @param schemaBuilder
@@ -392,7 +430,8 @@ public interface Parameters {
   }
 
   /**
-   * Creates an optional exploded array parameter. Exploded parameters looks like {@code parameterName=item1&parameterName=item2}
+   * Creates an optional exploded array parameter. Exploded parameters looks like {@code parameterName=item1
+   * &parameterName=item2}
    *
    * @param parameterName
    * @param schemaBuilder
@@ -404,7 +443,8 @@ public interface Parameters {
   }
 
   /**
-   * Creates a required exploded tuple parameter. Exploded parameters looks like {@code parameterName=item1&parameterName=item2}
+   * Creates a required exploded tuple parameter. Exploded parameters looks like {@code parameterName=item1
+   * &parameterName=item2}
    *
    * @param parameterName
    * @param schemaBuilder
@@ -416,7 +456,8 @@ public interface Parameters {
   }
 
   /**
-   * Creates an optional exploded tuple parameter. Exploded parameters looks like {@code parameterName=item1&parameterName=item2}
+   * Creates an optional exploded tuple parameter. Exploded parameters looks like {@code parameterName=item1
+   * &parameterName=item2}
    *
    * @param parameterName
    * @param schemaBuilder
@@ -447,12 +488,14 @@ public interface Parameters {
    * @return
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
-  static StyledParameterProcessorFactory optionalExplodedParam(String parameterName, ObjectSchemaBuilder schemaBuilder) {
+  static StyledParameterProcessorFactory optionalExplodedParam(String parameterName,
+                                                               ObjectSchemaBuilder schemaBuilder) {
     return ValidationDSLUtils.createExplodedObjectParamFactory(parameterName, schemaBuilder, true);
   }
 
   /**
-   * Creates a required deep object parameter. Deep object parameters looks like {@code parameterName[key1]=value1&parameterName[key2]=value2}
+   * Creates a required deep object parameter. Deep object parameters looks like {@code parameterName[key1]=value1
+   * &parameterName[key2]=value2}
    *
    * @param parameterName
    * @param schemaBuilder
@@ -464,14 +507,16 @@ public interface Parameters {
   }
 
   /**
-   * Creates an optional deep object parameter. Deep object parameters looks like {@code parameterName[key1]=value1&parameterName[key2]=value2}
+   * Creates an optional deep object parameter. Deep object parameters looks like {@code parameterName[key1]=value1
+   * &parameterName[key2]=value2}
    *
    * @param parameterName
    * @param schemaBuilder
    * @return
    */
   @GenIgnore(GenIgnore.PERMITTED_TYPE)
-  static StyledParameterProcessorFactory optionalDeepObjectParam(String parameterName, ObjectSchemaBuilder schemaBuilder) {
+  static StyledParameterProcessorFactory optionalDeepObjectParam(String parameterName,
+                                                                 ObjectSchemaBuilder schemaBuilder) {
     return ValidationDSLUtils.createDeepObjectParamFactory(parameterName, schemaBuilder, true);
   }
 }

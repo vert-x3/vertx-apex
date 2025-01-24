@@ -17,7 +17,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import static io.vertx.ext.web.validation.builder.Parameters.param;
-import static io.vertx.ext.web.validation.testutils.TestRequest.*;
+import static io.vertx.ext.web.validation.testutils.TestRequest.jsonBodyResponse;
+import static io.vertx.ext.web.validation.testutils.TestRequest.statusCode;
+import static io.vertx.ext.web.validation.testutils.TestRequest.statusMessage;
+import static io.vertx.ext.web.validation.testutils.TestRequest.testRequest;
 import static io.vertx.json.schema.draft7.dsl.Schemas.intSchema;
 
 @SuppressWarnings("unchecked")
@@ -42,7 +45,7 @@ public class RouteToEBServiceFuturesHandlerTest extends BaseValidationHandlerTes
     router
       .post("/testFutureWithRequestParameter/:param")
       .handler(BodyHandler.create())
-      .handler(ValidationHandler.builder(parser).pathParameter(param("param", intSchema())).build())
+      .handler(ValidationHandler.builder(schemaRepo).pathParameter(param("param", intSchema())).build())
       .handler(
         RouteToEBServiceHandler.build(vertx.eventBus(), "someAddress", "testFutureWithRequestParameter"));
 
@@ -63,7 +66,7 @@ public class RouteToEBServiceFuturesHandlerTest extends BaseValidationHandlerTes
     router
       .post("/testFutureWithIntParameter/:param")
       .handler(BodyHandler.create())
-      .handler(ValidationHandler.builder(parser).pathParameter(param("param", intSchema())).build())
+      .handler(ValidationHandler.builder(schemaRepo).pathParameter(param("param", intSchema())).build())
       .handler(
         RouteToEBServiceHandler.build(vertx.eventBus(), "someAddress", "testFutureWithIntParameter"));
 
@@ -84,7 +87,7 @@ public class RouteToEBServiceFuturesHandlerTest extends BaseValidationHandlerTes
     router
       .post("/testFuture")
       .handler(BodyHandler.create())
-      .handler(ValidationHandler.builder(parser).build())
+      .handler(ValidationHandler.builder(schemaRepo).build())
       .handler(
         RouteToEBServiceHandler.build(vertx.eventBus(), "someAddress", "testFuture"));
 

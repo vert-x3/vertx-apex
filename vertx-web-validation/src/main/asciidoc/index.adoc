@@ -57,22 +57,21 @@ Vert.x Web Validation provides an easy to use API to build an handler that perfo
 == Creating the `ValidationHandler`
 
 This module provides an easy to use builder API to create your {@link io.vertx.ext.web.validation.ValidationHandler}, the {@link io.vertx.core.Handler} that performs the parsing and validation of the request.
-To create this builder use {@link io.vertx.ext.web.validation.builder.ValidationHandlerBuilder#create(SchemaParser)}.
-The provided {@link io.vertx.json.schema.SchemaParser} will be used to parse all schemas created with https://vertx.io/docs/vertx-json-schema/$lang/[Vert.x Json Schema DSL]
+To create this builder use {@link io.vertx.ext.web.validation.builder.ValidationHandlerBuilder#create(SchemaRepository)}.
 
 === Defining parameters
 
 You can define parameters located in four different locations of your request: query, cookie, header, path.
 
-Every parameter is represented by a {@link io.vertx.ext.web.validation.impl.parameter.ParameterProcessor},
-that you can easily create with methods provided in {@link io.vertx.ext.web.validation.builder.Parameters}:
+Every parameter is represented by a {@link io.vertx.ext.web.validation.impl.parameter.ParameterProcessor}, that you can easily create with methods provided in {@link io.vertx.ext.web.validation.builder.Parameters}:
 
 [source,$lang]
 ----
 {@link examples.WebValidationExamples#parameters}
 ----
 
-Note that all these methods requires a schema that validator can use to perform the validation. The schema is also used to infer the correct parser
+Note that all these methods requires a schema that validator can use to perform the validation.
+The schema is also used to infer the correct parser
 
 While header and path parameters allows only simple parameters, query and cookie allows complex parameters like exploded and deep object:
 
@@ -85,8 +84,7 @@ For more info on all available parameters, look at {@link io.vertx.ext.web.valid
 
 === Defining request bodies
 
-Every body type is represented by a {@link io.vertx.ext.web.validation.impl.parameter.ParameterProcessor}
-and matches with request body using `Content-type` header.
+Every body type is represented by a {@link io.vertx.ext.web.validation.impl.parameter.ParameterProcessor} and matches with request body using `Content-type` header.
 You can define one or multiple bodies that the `ValidationHandler` should manage.
 If no matching body processor is found, the validation **won't** fail unless you specified the body required predicate explained below
 
@@ -98,8 +96,8 @@ You can easily create these processor with methods provided in {@link io.vertx.e
 ----
 
 In this example the `ValidationHandler` will be able to manage two different body types that consistently parse and validate.
-In particular the form body will be converted to a json object. When you retrieve the parsed result, you don't need to care
-if the request body was a form or a json
+In particular the form body will be converted to a json object.
+When you retrieve the parsed result, you don't need to care if the request body was a form or a json
 
 For more info on all available body processors, look at {@link io.vertx.ext.web.validation.builder.Bodies} documentation.
 
@@ -133,8 +131,7 @@ The `ValidationHandler` will place the parsed values into {@link io.vertx.ext.we
 
 == Manage the failures
 
-Every time a `ValidationHandler` encounters both a parsing or a validation failure, it fails the `RoutingContext` with 400 status code and
-an instance of a subclass of {@link io.vertx.ext.web.validation.BadRequestException} as cause.
+Every time a `ValidationHandler` encounters both a parsing or a validation failure, it fails the `RoutingContext` with 400 status code and an instance of a subclass of {@link io.vertx.ext.web.validation.BadRequestException} as cause.
 To learn how to manage failures, look at https://vertx.io/docs/vertx-web/java/#_error_handling[Vert.x Web doc] and {@link io.vertx.ext.web.Router#errorHandler(int,Handler)} method.
 
 The possible subclasses of {@link io.vertx.ext.web.validation.BadRequestException} are:
