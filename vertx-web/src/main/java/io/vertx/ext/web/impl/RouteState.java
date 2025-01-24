@@ -1275,16 +1275,20 @@ final class RouteState {
     return context.currentRouteNextFailureHandlerIndex() < getFailureHandlersLength();
   }
 
-  void handleContext(RoutingContextImplBase context) {
-    contextHandlers
-      .get(context.currentRouteNextHandlerIndex() - 1)
-      .handle(context);
+  Handler<RoutingContext> nextContextHandler(RoutingContextImplBase context) {
+    int index = context.nextContextHandler(getContextHandlersLength());
+    if (index < 0) {
+      return null;
+    }
+    return contextHandlers.get(index);
   }
 
-  void handleFailure(RoutingContextImplBase context) {
-    failureHandlers
-      .get(context.currentRouteNextFailureHandlerIndex() - 1)
-      .handle(context);
+  Handler<RoutingContext> nextFailureHandler(RoutingContextImplBase context) {
+    int index = context.nextFailureHandler(getFailureHandlersLength());
+    if (index < 0) {
+      return null;
+    }
+    return failureHandlers.get(index);
   }
 
   public String getName() {

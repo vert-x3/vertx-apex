@@ -130,18 +130,39 @@ public abstract class RoutingContextImplBase implements RoutingContextInternal {
     next();
   }
 
+  final int nextFailureHandler(int limit) {
+    int index;
+    do {
+      index = currentRouteNextFailureHandlerIndex;
+      if (index >= limit) {
+        return -1;
+      }
+    } while (!CURRENT_ROUTE_NEXT_FAILURE_HANDLER_INDEX.compareAndSet(this, index, index + 1));
+    return index;
+  }
+
+  final int nextContextHandler(int limit) {
+    int index;
+    do {
+      index = currentRouteNextHandlerIndex;
+      if (index >= limit) {
+        return -1;
+      }
+    } while (!CURRENT_ROUTE_NEXT_HANDLER_INDEX.compareAndSet(this, index, index + 1));
+    return index;
+  }
+
   boolean iterateNext() {
     boolean failed = failed();
     if (currentRoute != null) { // Handle multiple handlers inside route object
       try {
-        if (!failed && currentRoute.hasNextContextHandler(this)) {
-          CURRENT_ROUTE_NEXT_HANDLER_INDEX.incrementAndGet(this);
+        Handler<RoutingContext> handler;
+        if (!failed && (handler = currentRoute.nextContextHandler(this)) != null) {
           resetMatchFailure();
-          currentRoute.handleContext(this);
+          handler.handle(this);
           return true;
-        } else if (failed && currentRoute.hasNextFailureHandler(this)) {
-          CURRENT_ROUTE_NEXT_FAILURE_HANDLER_INDEX.incrementAndGet(this);
-          currentRoute.handleFailure(this);
+        } else if (failed && (handler = currentRoute.nextFailureHandler(this)) != null) {
+          handler.handle(this);
           return true;
         }
       } catch (Throwable t) {
@@ -169,12 +190,11 @@ public abstract class RoutingContextImplBase implements RoutingContextInternal {
             if (LOG.isTraceEnabled()) {
               LOG.trace("Calling the " + (failed ? "failure" : "") + " handler");
             }
-            if (failed && currentRoute.hasNextFailureHandler(this)) {
-              CURRENT_ROUTE_NEXT_FAILURE_HANDLER_INDEX.incrementAndGet(this);
-              routeState.handleFailure(this);
-            } else if (currentRoute.hasNextContextHandler(this)) {
-              CURRENT_ROUTE_NEXT_HANDLER_INDEX.incrementAndGet(this);
-              routeState.handleContext(this);
+            Handler<RoutingContext> handler;
+            if (failed && (handler = currentRoute.nextFailureHandler(this)) != null) {
+              handler.handle(this);
+            } else if ((handler = currentRoute.nextContextHandler(this)) != null) {
+              handler.handle(this);
             } else {
               continue;
             }
