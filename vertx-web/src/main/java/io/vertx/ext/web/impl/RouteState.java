@@ -1308,16 +1308,15 @@ final class RouteState {
       if (other.charAt(len -1) == '/') {
         // final slash is not significant, ignore it
         len--;
+        if (base.length() != len) {
+          return false;
+        }
+        // content must match
+        return other.regionMatches(0, base, 0, len);
       }
     }
-
-    // lengths are not the same (fail)
-    if (base.length() != len) {
-      return false;
-    }
-
     // content must match
-    return other.regionMatches(0, base, 0, len);
+    return other.equals(base);
   }
 
   private void addPathParam(RoutingContext context, String name, String value) {
