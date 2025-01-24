@@ -17,13 +17,22 @@ package io.vertx.ext.web.client.impl;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.UnpooledByteBufAllocator;
-import io.netty.handler.codec.http.*;
-import io.netty.handler.codec.http.multipart.*;
+import io.netty.handler.codec.http.DefaultFullHttpRequest;
+import io.netty.handler.codec.http.HttpConstants;
+import io.netty.handler.codec.http.HttpContent;
+import io.netty.handler.codec.http.HttpRequest;
+import io.netty.handler.codec.http.multipart.Attribute;
+import io.netty.handler.codec.http.multipart.DefaultHttpDataFactory;
+import io.netty.handler.codec.http.multipart.FileUpload;
+import io.netty.handler.codec.http.multipart.HttpPostRequestEncoder;
+import io.netty.handler.codec.http.multipart.MemoryAttribute;
+import io.netty.handler.codec.http.multipart.MemoryFileUpload;
 import io.vertx.core.Context;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpVersion;
 import io.vertx.core.http.impl.headers.HeadersAdaptor;
 import io.vertx.core.streams.ReadStream;
 import io.vertx.core.streams.impl.InboundBuffer;
@@ -51,17 +60,27 @@ public class MultipartFormUpload implements ReadStream<Buffer> {
   private final InboundBuffer<Object> pending;
   private boolean ended;
   private final Context context;
+  private final HttpVersion version;
 
   public MultipartFormUpload(Context context,
                              MultipartForm parts,
                              boolean multipart,
                              HttpPostRequestEncoder.EncoderMode encoderMode) throws Exception {
+    this(context, parts, multipart, HttpVersion.HTTP_1_1, encoderMode);
+  }
+
+  public MultipartFormUpload(Context context,
+                             MultipartForm parts,
+                             boolean multipart,
+                             HttpVersion version,
+                             HttpPostRequestEncoder.EncoderMode encoderMode) throws Exception {
     this.context = context;
+    this.version = version;
     this.pending = new InboundBuffer<>(context)
       .handler(this::handleChunk)
       .drainHandler(v -> run()).pause();
     this.request = new DefaultFullHttpRequest(
-      HttpVersion.HTTP_1_1,
+      io.netty.handler.codec.http.HttpVersion.HTTP_1_1, //this version is not used in any way
       io.netty.handler.codec.http.HttpMethod.POST,
       "/");
     parts.getCharset();
@@ -175,8 +194,22 @@ public class MultipartFormUpload implements ReadStream<Buffer> {
     }
   }
 
+  /**
+   * Remove the transfer encoding header if the version is not HTTP/1.0 or HTTP/1.1 as indicated in the
+   * <a href="https://datatracker.ietf.org/doc/html/rfc7540#section-8.1.2.2">RFC 7540 Section 8.1.2.2</a>.
+   * Currently, it is verbose, but making sure this does not need to be fixed for HTTP/3 again.
+   *
+   * @return the headers appropriate to include with the form.
+   */
   public MultiMap headers() {
-    return new HeadersAdaptor(request.headers());
+    HeadersAdaptor adaptor = new HeadersAdaptor(request.headers());
+    // Currently it is verbose, but making sure this does not need to be fixed for HTTP/3 again.
+    if (this.encoder.isChunked() && !(this.version == HttpVersion.HTTP_1_1 || this.version == HttpVersion.HTTP_1_0)) {
+      final long realSize = this.encoder.length();
+      adaptor.remove(io.vertx.core.http.HttpHeaders.TRANSFER_ENCODING);
+      adaptor.set(io.vertx.core.http.HttpHeaders.CONTENT_LENGTH, String.valueOf(realSize));
+    }
+    return adaptor;
   }
 
   @Override

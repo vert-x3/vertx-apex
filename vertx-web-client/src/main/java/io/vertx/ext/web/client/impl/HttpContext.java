@@ -432,7 +432,7 @@ public class HttpContext<T> {
         try {
           boolean multipart = "multipart/form-data".equals(contentType);
           HttpPostRequestEncoder.EncoderMode encoderMode = this.request.multipartMixed() ? HttpPostRequestEncoder.EncoderMode.RFC1738 : HttpPostRequestEncoder.EncoderMode.HTML5;
-          multipartForm = new MultipartFormUpload(context,  (MultipartForm) this.body, multipart, encoderMode);
+          multipartForm = new MultipartFormUpload(context,  (MultipartForm) this.body, multipart, this.options.getProtocolVersion(), encoderMode);
           this.body = multipartForm;
         } catch (Exception e) {
           fail(e);

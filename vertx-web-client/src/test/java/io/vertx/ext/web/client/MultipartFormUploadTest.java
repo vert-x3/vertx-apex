@@ -19,6 +19,8 @@ import io.netty.handler.codec.http.multipart.HttpPostRequestEncoder;
 import io.vertx.core.Context;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpHeaders;
+import io.vertx.core.http.HttpVersion;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
@@ -40,6 +42,8 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(VertxUnitRunner.class)
 public class MultipartFormUploadTest {
@@ -123,5 +127,28 @@ public class MultipartFormUploadTest {
         throw new AssertionError(e);
       }
     });
+  }
+
+  @Test
+  public void testCorrectHeadersForH2(TestContext ctx) throws Exception {
+    Async async = ctx.async();
+    Buffer result = Buffer.buffer();
+    Context context = vertx.getOrCreateContext();
+    String longString = TestUtils.randomAlphaString(10_000);
+    MultipartForm form = MultipartForm.create().attribute("foo", longString);
+    MultipartFormUpload upload = new MultipartFormUpload(context, form, false, HttpVersion.HTTP_2, HttpPostRequestEncoder.EncoderMode.RFC1738);
+    try {
+      upload.endHandler(v -> {
+        assertEquals("foo=" + longString, result.toString());
+        async.complete();
+      });
+      upload.handler(result::appendBuffer);
+      assertFalse(upload.headers().contains(HttpHeaders.TRANSFER_ENCODING));
+      assertTrue(upload.headers().contains(HttpHeaders.CONTENT_LENGTH));
+      upload.resume();
+      context.runOnContext(v -> upload.run());
+    } catch (Exception e) {
+      ctx.fail(e);
+    }
   }
 }
