@@ -55,6 +55,26 @@ public abstract class SessionHandlerTestBase extends WebTestBase {
 		}, 200, "OK", null);
 	}
 
+  @Test
+  public void testSessionCookieDomain() throws Exception {
+    router.route().handler(SessionHandler.create(store).setSessionCookieDomain("example.com"));
+    router.route().handler(rc -> rc.response().end());
+    testRequest(HttpMethod.GET, "/", null, resp -> {
+      String setCookie = resp.headers().get("set-cookie");
+      assertTrue(setCookie.contains("Domain=example.com"));
+    }, 200, "OK", null);
+  }
+
+  @Test
+  public void testSessionCookieDefaultDomain() throws Exception {
+    router.route().handler(SessionHandler.create(store));
+    router.route().handler(rc -> rc.response().end());
+    testRequest(HttpMethod.GET, "/", null, resp -> {
+      String setCookie = resp.headers().get("set-cookie");
+      assertFalse(setCookie.contains("Domain"));
+    }, 200, "OK", null);
+  }
+
 	@Test
 	public void testSessionCookiePath() throws Exception {
 		router.route().handler(SessionHandler.create(store).setSessionCookiePath("/path"));

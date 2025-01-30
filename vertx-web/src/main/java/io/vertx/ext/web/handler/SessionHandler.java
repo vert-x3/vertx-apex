@@ -47,6 +47,12 @@ public interface SessionHandler extends PlatformHandler {
 	 */
 	String DEFAULT_SESSION_COOKIE_NAME = "vertx-web.session";
 
+  /**
+   * Default domain of session cookie i.e. no domain is set. More info:
+   * https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie#domaindomain-value
+   */
+  String DEFAULT_SESSION_COOKIE_DOMAIN = null;
+
 	/**
 	 * Default path of session cookie
 	 */
@@ -147,6 +153,19 @@ public interface SessionHandler extends PlatformHandler {
 	 */
 	@Fluent
 	SessionHandler setSessionCookieName(String sessionCookieName);
+
+  /**
+   * Set the session cookie domain. Only the current domain can be set as the
+   * value, or a domain of a higher order, unless it is a public suffix. Setting
+   * the domain will make the cookie available to it, as well as to all its
+   * subdomains. If omitted, this attribute defaults to the host of the current
+   * document URL, not including subdomains.
+   *
+   * @param sessionCookieDomain the session cookie domain
+   * @return a reference to this, so the API can be used fluently
+   */
+  @Fluent
+  SessionHandler setSessionCookieDomain(String sessionCookieDomain);
 
 	/**
 	 * Set the session cookie path
